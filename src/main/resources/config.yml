@@ -1,0 +1,77 @@
+# PortalGunMode:[INFINITY: Each Portal Gun created has its own portal. UNIQUE: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]
+Interdimensional: true
+PortalGunMode: INFINITY
+PortalCraftable: true
+WhiteList: true
+WhiteListBlocks:
+- WHITE_CONCRETE
+- WHITE_WOOL
+- QUARTZ_BLOCK
+- SMOOTH_QUARTZ
+PortalMapID:
+  blue:
+    up: -1
+    down: -1
+  orange:
+    up: -1
+    down: -1
+  aqua:
+    up: -1
+    down: -1
+  red:
+    up: -1
+    down: -1
+  yellow:
+    up: -1
+    down: -1
+  purple:
+    up: -1
+    down: -1
+PortalGunCrafts:
+  chell:
+    Craft: true
+    Shape:
+    - AIG
+    - WNI
+    - WWA
+    Ingredients:
+    - I:IRON_INGOT
+    - G:GLASS_PANE
+    - W:WHITE_CONCRETE
+    - N:NETHER_STAR
+  atlas:
+    Craft: true
+    Shape:
+    - AIG
+    - YNI
+    - WWA
+    Ingredients:
+    - I:IRON_INGOT
+    - G:GLASS_PANE
+    - W:WHITE_CONCRETE
+    - Y:YELLOW_CONCRETE
+    - N:NETHER_STAR
+  p_body:
+    Craft: true
+    Shape:
+    - AIG
+    - LNI
+    - WWA
+    Ingredients:
+    - I:IRON_INGOT
+    - G:GLASS_PANE
+    - W:WHITE_CONCRETE
+    - L:LIGHT_BLUE_CONCRETE
+    - N:NETHER_STAR
+  potatos:
+    Craft: true
+    Shape:
+    - PIG
+    - WNI
+    - WWA
+    Ingredients:
+    - I:IRON_INGOT
+    - G:GLASS_PANE
+    - W:WHITE_CONCRETE
+    - P:POTATO
+    - N:NETHER_STAR
