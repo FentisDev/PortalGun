@@ -21,13 +21,10 @@ public class Portal {
     private BlockFace face;
     private ItemFrame up;
     private ItemFrame down;
-    //private ItemStack upI,downI;
     private BlockFace direction;
 
     public Portal(PortalColors color){
         this.color = color;
-        //upI=getPortalMapItem(PortalSide.UP,color);
-        //downI=getPortalMapItem(PortalSide.DOWN,color);
     }
 
     public void setColor(PortalColors color) {
@@ -134,16 +131,6 @@ public class Portal {
         if (up!=null){
             for (Entity nearbyEntity : up.getNearbyEntities(x, y, z)) {
                 if (nearbyEntity instanceof LivingEntity || nearbyEntity instanceof Item){
-                    /*CubeBlock cube = null;
-                    StandButton button = null;
-                    if ((nearbyEntity.getType()== EntityType.ARMOR_STAND&&
-                            (cube=GameManager.getInstance().getCube(((ArmorStand) nearbyEntity)))!=null &&
-                            cube.getHolding()!=null)||
-                    (nearbyEntity.getType()== EntityType.ARMOR_STAND&&
-                            (button=GameManager.getInstance().getStandButton(((ArmorStand) nearbyEntity)))!=null)){
-                    }else{
-                        en.add(nearbyEntity);
-                    }*/
                     en.add(nearbyEntity);
                 }
             }
@@ -151,13 +138,6 @@ public class Portal {
         if (down!=null){
             for (Entity nearbyEntity : down.getNearbyEntities(x, y, z)) {
                 if ((nearbyEntity instanceof LivingEntity || nearbyEntity instanceof Item) && !en.contains(nearbyEntity)){
-                    /*CubeBlock cube = null;
-                    if (nearbyEntity.getType()== EntityType.ARMOR_STAND&&
-                            (cube=GameManager.getInstance().getCube(((ArmorStand) nearbyEntity)))!=null &&
-                            cube.getHolding()!=null){
-                    }else{
-                        en.add(nearbyEntity);
-                    }*/
                     en.add(nearbyEntity);
                 }
             }
@@ -219,12 +199,6 @@ public class Portal {
         } catch (IllegalArgumentException e) {
             resetPortal();
         }
-        /*Bukkit.getScheduler().scheduleSyncDelayedTask(PortalGunMain.getInstance(), new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        },3);*/
     }
 
     public void unRenderPortal(){
@@ -242,20 +216,6 @@ public class Portal {
             down=null;
         }
     }
-
-    /*public ItemStack getPortalMapItem(PortalSide side, PortalColors color){
-        ItemStack item = new ItemStack(Material.FILLED_MAP);
-        MapMeta mm = (MapMeta)item.getItemMeta();
-        //MapView mapView = Bukkit.createMap(Bukkit.getWorlds().get(0));
-        MapView mapView = Bukkit.getMap(100);
-        mapView.getId()
-        mapView.getRenderers().clear();
-        mapView.addRenderer(new PortalRender(side, color));
-        mm.setMapView(mapView);
-        item.setItemMeta(mm);
-        NBTItem nbtItem = new NBTItem(item);
-        return item;
-    }*/
 
     public JsonObject toJson(){
         JsonObject json = new JsonObject();

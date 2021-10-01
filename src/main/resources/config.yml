@@ -1,4 +1,4 @@
-# PortalGunMode:[INFINITY: Each Portal Gun created has its own portal. UNIQUE: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]
+# PortalGunMode:[INFINITY: Each Portal Gun created has its own portal. ONE_TYPE_PER_PLAYER: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]
 Interdimensional: true
 PortalGunMode: INFINITY
 PortalCraftable: true

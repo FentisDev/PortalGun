@@ -129,7 +129,7 @@ public class PortalUtils {
                         int id = nbt.getInt("PortalID");
                         portalGun = PortalGunManager.getInstance().getPortalGun(id);
                         break;
-                    case UNIQUE:
+                    case ONE_TYPE_PER_PLAYER:
                         PortalGun pg = null;
                         for (PortalGun playerPortalGun : PortalGunManager.getInstance().getPlayerPortalGuns(p)) {
                             if (playerPortalGun.getPortalModel()==PortalModel.getPortalModelByMaterial(item.getType())){
@@ -233,29 +233,5 @@ public class PortalUtils {
         }
         entity.teleport(loc);
         entity.setVelocity(vec);
-    }
-
-    public String getMinecraftVersion(){
-        String version = PortalGunMain.getInstance().getServer().getVersion().split(":")[1].trim().replace(")","");
-        System.out.println(version);
-        return version;
-    }
-
-    public boolean isMinecraftVersion(String version){
-        return version.equalsIgnoreCase(getMinecraftVersion());
-    }
-
-    public boolean isMinecraftVersionIgnoreSub(String version){
-        int isVer = Integer.parseInt(version.replace(".",";").split(";")[1]);
-        int ver = Integer.parseInt(getMinecraftVersion().replace(".",";").split(";")[1]);
-        return isVer==ver;
-    }
-
-    public boolean isMinecraftVersionOrPlus(String version){
-        System.out.println("Test");
-        int isVer = Integer.parseInt(version.replace(".",";").split(";")[1]);
-        int ver = Integer.parseInt(getMinecraftVersion().replace(".",";").split(";")[1]);
-        System.out.println(isVer+" : "+ver);
-        return isVer>=ver;
     }
 }

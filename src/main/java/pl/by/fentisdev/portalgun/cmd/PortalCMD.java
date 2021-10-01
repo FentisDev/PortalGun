@@ -10,6 +10,7 @@ import pl.by.fentisdev.portalgun.portalgun.*;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +52,7 @@ public class PortalCMD implements TabExecutor {
                                     case INFINITY:
                                         pg = PortalGunManager.getInstance().createPortalGun(po);
                                         break;
-                                    case UNIQUE:
+                                    case ONE_TYPE_PER_PLAYER:
                                         for (PortalGun playerPortalGun : PortalGunManager.getInstance().getPlayerPortalGuns(to)) {
                                             if (playerPortalGun.getPortalModel()==po){
                                                 pg = playerPortalGun;
@@ -95,6 +96,10 @@ public class PortalCMD implements TabExecutor {
                         }else{
                             Player to = Optional.of(Bukkit.getPlayer(strings[1])).orElse(null);
                             if (to!=null){
+                                if (PortalConfig.getInstance().getPortalGunMode()==PortalGunMode.INFINITY){
+                                    p.sendMessage("§cPortalGun don't have connection with player in PortalGun mode Infinity");
+                                    return false;
+                                }
                                 PortalGunManager.getInstance().getPlayerPortalGuns(to).forEach(PortalGun::resetPortals);
                                 p.sendMessage("§aReseted!");
                             }else{
@@ -115,6 +120,32 @@ public class PortalCMD implements TabExecutor {
                         p.sendMessage("§aReseted!");
                     }
                 }
+                if (strings[0].equalsIgnoreCase("id")){
+                    if(strings.length==1){
+                        PortalGun pg;
+                        if ((pg = PortalUtils.getInstance().getPortalGun(p.getInventory().getItemInMainHand())) != null) {
+                            p.sendMessage("§ePortalGun ID: " + pg.getId());
+                        } else {
+                            p.sendMessage("§cHold the PortalGun first.");
+                        }
+                    }else{
+                        if (PortalConfig.getInstance().getPortalGunMode()==PortalGunMode.INFINITY){
+                            p.sendMessage("§cPortalGun don't have connection with player in PortalGun mode Infinity");
+                            return false;
+                        }
+                        Player to = Optional.of(Bukkit.getPlayer(strings[1])).orElse(null);
+                        if (to!=null&&to.isOnline()){
+                            StringBuilder ids = new StringBuilder("§aPlayer: "+to.getName()+" PortalGuns: ");
+                            List<String> idsList = new ArrayList<>();
+                            PortalGunManager.getInstance().getPlayerPortalGuns(to).forEach(pg -> idsList.add(""+pg.getId()));
+                            ids.append(idsList.size()==0?"None":String.join(",",idsList));
+                            ids.append(".");
+                            p.sendMessage(ids.toString());
+                        }else{
+                            p.sendMessage("§cPlayer offline!");
+                        }
+                    }
+                }
             }
         }
         return false;
@@ -122,19 +153,24 @@ public class PortalCMD implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] strings) {
+        List<String> players = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
         if (strings.length==1){
-            return Arrays.asList("give","reset");
+            return Arrays.asList("give","reset","id");
         }else if (strings.length==2){
             if (strings[0].equalsIgnoreCase("give")){
                 return Arrays.asList("chell","p_body","atlas","potatos");
             }
             if (strings[0].equalsIgnoreCase("reset")){
-                List<String> players = Bukkit.getOnlinePlayers().stream().map(HumanEntity::getName).collect(Collectors.toList());
                 players.add("*");
                 return players;
             }
+            if (strings[0].equalsIgnoreCase("id")){
+                return players;
+            }
         }else if (strings.length==3){
-            return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+            if (strings[0].equalsIgnoreCase("give")){
+                return players;
+            }
         }
         return null;
     }

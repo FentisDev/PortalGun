@@ -15,6 +15,7 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.events.PlayerPortalShotEvent;
+import pl.by.fentisdev.portalgun.utils.ItemCreator;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
 import pl.by.fentisdev.portalgun.utils.nbt.NBTTagCompound;
 
@@ -94,7 +95,7 @@ public class PortalGun {
         ItemStack item = new ItemStack(getPortalModel().getMaterialPortal());
         ItemMeta im = item.getItemMeta();
         im.setDisplayName(getPortalModel().getName());
-        im.setLore(Arrays.asList("§7#"+getId()));
+        //im.setLore(Arrays.asList("§7#"+getId()));
         im.setCustomModelData(colors==null? getPortalModel().getCustomModelData():colors.getCustomModelData());
         item.setItemMeta(im);
         NBTTagCompound nbt = new NBTTagCompound(item);

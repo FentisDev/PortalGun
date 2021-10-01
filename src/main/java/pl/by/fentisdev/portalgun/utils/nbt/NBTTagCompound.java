@@ -110,48 +110,59 @@ public class NBTTagCompound implements NBTBase{
         return itemStack;
     }
 
-    public void set(String key, Object object) {
+    public NBTTagCompound set(String key, Object object) {
         insert(nbtTagCompound,"set",key,object.getClass(),object);
+        return this;
     }
 
-    public void setByte(String key, byte value) {
+    public NBTTagCompound setByte(String key, byte value) {
         insert(nbtTagCompound,"setByte",key,byte.class,value);
+        return this;
     }
 
-    public void setShort(String key, short value) {
+    public NBTTagCompound setShort(String key, short value) {
         insert(nbtTagCompound,"setShort",key,short.class,value);
+        return this;
     }
 
-    public void setInt(String key, int value) {
+    public NBTTagCompound setInt(String key, int value) {
         insert(nbtTagCompound,"setInt",key,int.class,value);
+        return this;
     }
 
-    public void setLong(String key, long value) {
+    public NBTTagCompound setLong(String key, long value) {
         insert(nbtTagCompound,"setLong",key,long.class,value);
+        return this;
     }
 
-    public void setFloat(String key, float value) {
+    public NBTTagCompound setFloat(String key, float value) {
         insert(nbtTagCompound,"setFloat",key,float.class,value);
+        return this;
     }
 
-    public void setDouble(String key, double value) {
+    public NBTTagCompound setDouble(String key, double value) {
         insert(nbtTagCompound,"setDouble",key,double.class,value);
+        return this;
     }
 
-    public void setString(String key, String string) {
+    public NBTTagCompound setString(String key, String string) {
         insert(nbtTagCompound,"setString",key,String.class,string);
+        return this;
     }
 
-    public void setByteArray(String key, byte[] values) {
+    public NBTTagCompound setByteArray(String key, byte[] values) {
         insert(nbtTagCompound,"setByteArray",key,byte[].class,values);
+        return this;
     }
 
-    public void setIntArray(String key, int[] values) {
+    public NBTTagCompound setIntArray(String key, int[] values) {
         insert(nbtTagCompound,"setIntArray",key,int[].class,values);
+        return this;
     }
 
-    public void setBoolean(String key, boolean value) {
+    public NBTTagCompound setBoolean(String key, boolean value) {
         insert(nbtTagCompound,"setBoolean",key,boolean.class,value);
+        return this;
     }
 
     public Object get(String key){

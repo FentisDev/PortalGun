@@ -5,5 +5,5 @@ author: FentisDeveloper
 api-version: 1.14
 softdepend: [WorldGuard]
 commands:
-  portal:
+  portalgun:
     permission: portalgun.admin

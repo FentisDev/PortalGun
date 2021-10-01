@@ -27,47 +27,12 @@ public class PortalGunMain extends JavaPlugin {
     public void onEnable() {
         instance = this;
         Bukkit.getPluginManager().registerEvents(new PortalListeners(),this);
-        getCommand("portal").setExecutor(new PortalCMD());
+        getCommand("portalgun").setExecutor(new PortalCMD());
         PortalConfig.getInstance().createConfig();
         registryCraft();
         registryWorldGuard();
         PortalGunManager.getInstance().registryPortals();
         PortalGunManager.getInstance().startPortalScheduler();
-        /*bukkitRunnable = new BukkitRunnable(){
-            @Override
-            public void run() {
-                if (Bukkit.getOnlinePlayers().size()==0||getPortalGuns().size()==0){
-                    return;
-                }
-                //List<PortalGun> pg = getPortalGuns().stream().filter(PortalGun::isOnline).collect(Collectors.toList());
-                for (PortalGun portalGun : getPortalGuns().stream().filter(PortalGun::isOnline).collect(Collectors.toList())) {
-
-                }
-                getPortalGuns().forEach(portalGun -> {
-                    if (portalGun.isOnline()){
-                        for (Entity entity : portalGun.getPortal1().getEntityNearby()) {
-                            Location nloc = portalGun.getPortal2().getLocTeleport().clone();
-                            nloc.setYaw(entity.getLocation().getYaw());
-                            nloc.setPitch(entity.getLocation().getPitch());
-                            PortalSound.PORTAL_ENTER.playSound(entity.getLocation(),1,1);
-                            teleport(entity,nloc,portalGun.getPortal2().getPortalFace(),portalGun.getPortal2().getPortalFace()==BlockFace.UP, PortalUtils.getInstance().getCardinalDirection(entity));
-                            PortalSound.PORTAL_EXIT.playSound(entity.getLocation(),1,1);
-                        }
-                        for (Entity entity : portalGun.getPortal2().getEntityNearby()) {
-                            Location nloc = portalGun.getPortal1().getLocTeleport().clone();
-                            nloc.setYaw(entity.getLocation().getYaw());
-                            nloc.setPitch(entity.getLocation().getPitch());
-                            PortalSound.PORTAL_ENTER.playSound(entity.getLocation(),1,1);
-                            teleport(entity,nloc,portalGun.getPortal1().getPortalFace(), portalGun.getPortal1().getPortalFace()==BlockFace.UP, PortalUtils.getInstance().getCardinalDirection(entity));
-                            PortalSound.PORTAL_EXIT.playSound(entity.getLocation(),1,1);
-                        }
-                    }
-                });
-                for (PortalGun portalGun : getPortalGuns()) {
-
-                }
-            }
-        }.runTaskTimer(this,0,10);*/
     }
 
     @Override
@@ -110,10 +75,6 @@ public class PortalGunMain extends JavaPlugin {
             if (getConfig().getBoolean("PortalGunCrafts."+ PortalModel.POTATOS.toString().toLowerCase()+".Craft")){
                 registryPortalRecipe(PortalModel.POTATOS);
             }
-            //new RecipeCreator("portalgun_chell", PortalOwner.CHELL.createItem()).addShape("AIG","WNI","WWA").setIngredient('I', Material.IRON_INGOT).setIngredient('G', Material.GLASS_PANE).setIngredient('W',Material.WHITE_CONCRETE).setIngredient('N',Material.NETHER_STAR).addRecipe();
-            //new RecipeCreator("portalgun_atlas", PortalOwner.ATLAS.createItem()).addShape("AIG","YNI","WWA").setIngredient('I', Material.IRON_INGOT).setIngredient('G', Material.GLASS_PANE).setIngredient('W',Material.WHITE_CONCRETE).setIngredient('Y',Material.YELLOW_CONCRETE).setIngredient('N',Material.NETHER_STAR).addRecipe();
-            //new RecipeCreator("portalgun_p_body", PortalOwner.P_BODY.createItem()).addShape("AIG","LNI","WWA").setIngredient('I', Material.IRON_INGOT).setIngredient('G', Material.GLASS_PANE).setIngredient('W',Material.WHITE_CONCRETE).setIngredient('L',Material.LIGHT_BLUE_CONCRETE).setIngredient('N',Material.NETHER_STAR).addRecipe();
-            //new RecipeCreator("portalgun_potatos", PortalOwner.POTATOS.createItem()).addShape("PIG","WNI","WWA").setIngredient('I', Material.IRON_INGOT).setIngredient('G', Material.GLASS_PANE).setIngredient('W',Material.WHITE_CONCRETE).setIngredient('P',Material.POTATO).setIngredient('N',Material.NETHER_STAR).addRecipe();
         }
     }
 

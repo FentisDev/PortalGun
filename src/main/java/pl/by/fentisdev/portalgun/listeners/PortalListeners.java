@@ -71,7 +71,7 @@ public class PortalListeners implements Listener {
                     case INFINITY:
                         pg = PortalGunManager.getInstance().createPortalGun(po);
                         break;
-                    case UNIQUE:
+                    case ONE_TYPE_PER_PLAYER:
                         List<PortalGun> portalGuns = PortalGunManager.getInstance().getPlayerPortalGuns(p).stream().filter(portalGun -> portalGun.getPortalModel()==po).collect(Collectors.toList());
                         pg=portalGuns.size()!=0?portalGuns.get(0):PortalGunManager.getInstance().createPortalGun(po);
                         PortalGunManager.getInstance().addPlayerPortalGun(p,pg);
