@@ -1,6 +1,7 @@
 package pl.by.fentisdev.portalgun;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -11,8 +12,11 @@ import pl.by.fentisdev.portalgun.portalgun.*;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
 import pl.by.fentisdev.portalgun.utils.PortalWorldGuard;
 import pl.by.fentisdev.portalgun.utils.RecipeCreator;
+import pl.by.fentisdev.portalgun.utils.UpdateChecker;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PortalGunMain extends JavaPlugin {
 
@@ -33,6 +37,7 @@ public class PortalGunMain extends JavaPlugin {
         registryWorldGuard();
         PortalGunManager.getInstance().registryPortals();
         PortalGunManager.getInstance().startPortalScheduler();
+        updateChecker();
     }
 
     @Override
@@ -90,5 +95,16 @@ public class PortalGunMain extends JavaPlugin {
             rc.setIngredient(c,m);
         }
         rc.addRecipe();
+    }
+
+    public void updateChecker(){
+        new UpdateChecker(this, 96641).getVersion(version -> {
+            Bukkit.getConsoleSender().sendMessage("§eChecking for updates to [Portal Gun]...");
+            if (this.getDescription().getVersion().equalsIgnoreCase(version)) {
+                Bukkit.getConsoleSender().sendMessage("§aThe plugin is already in the most updated version!");
+            } else {
+                Bukkit.getConsoleSender().sendMessage("§cA new version is available! You can download it at https://www.spigotmc.org/resources/portal-gun.96641/");
+            }
+        });
     }
 }

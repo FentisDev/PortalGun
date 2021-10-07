@@ -29,7 +29,7 @@ public class PortalWorldGuard {
     public void load(){
         portalOpenFlag = register("portalgun-portal-open");
         portalGunUseFlag = register("portalgun-portalgun-use");
-        System.out.println("PortalGun Plugin Flags registradas com sucesso!");
+        //System.out.println("PortalGun Plugin Flags registradas com sucesso!");
     }
 
     public BooleanFlag getPortalOpenFlag() {

@@ -26,6 +26,27 @@ public class PortalConfig {
         cfg.addDefault("Interdimensional",true);
         cfg.addDefault("WhiteList",true);
         cfg.addDefault("WhiteListBlocks", Arrays.asList(Material.WHITE_CONCRETE.toString(),Material.WHITE_WOOL.toString(),Material.QUARTZ_BLOCK.toString(),Material.SMOOTH_QUARTZ.toString()));
+
+        cfg.addDefault("PortalGunResources."+ PortalModel.CHELL.toString().toLowerCase()+".Material",Material.WOODEN_HOE.toString());
+        cfg.addDefault("PortalGunResources."+ PortalModel.CHELL.toString().toLowerCase()+".CustomModelData.Normal",1);
+        cfg.addDefault("PortalGunResources."+ PortalModel.CHELL.toString().toLowerCase()+".CustomModelData.Shoot1",2);
+        cfg.addDefault("PortalGunResources."+ PortalModel.CHELL.toString().toLowerCase()+".CustomModelData.Shoot2",3);
+
+        cfg.addDefault("PortalGunResources."+ PortalModel.ATLAS.toString().toLowerCase()+".Material",Material.IRON_HOE.toString());
+        cfg.addDefault("PortalGunResources."+ PortalModel.ATLAS.toString().toLowerCase()+".CustomModelData.Normal",1);
+        cfg.addDefault("PortalGunResources."+ PortalModel.ATLAS.toString().toLowerCase()+".CustomModelData.Shoot1",2);
+        cfg.addDefault("PortalGunResources."+ PortalModel.ATLAS.toString().toLowerCase()+".CustomModelData.Shoot2",3);
+
+        cfg.addDefault("PortalGunResources."+ PortalModel.P_BODY.toString().toLowerCase()+".Material",Material.STONE_HOE.toString());
+        cfg.addDefault("PortalGunResources."+ PortalModel.P_BODY.toString().toLowerCase()+".CustomModelData.Normal",1);
+        cfg.addDefault("PortalGunResources."+ PortalModel.P_BODY.toString().toLowerCase()+".CustomModelData.Shoot1",2);
+        cfg.addDefault("PortalGunResources."+ PortalModel.P_BODY.toString().toLowerCase()+".CustomModelData.Shoot2",3);
+
+        cfg.addDefault("PortalGunResources."+ PortalModel.POTATOS.toString().toLowerCase()+".Material",Material.GOLDEN_HOE.toString());
+        cfg.addDefault("PortalGunResources."+ PortalModel.POTATOS.toString().toLowerCase()+".CustomModelData.Normal",1);
+        cfg.addDefault("PortalGunResources."+ PortalModel.POTATOS.toString().toLowerCase()+".CustomModelData.Shoot1",2);
+        cfg.addDefault("PortalGunResources."+ PortalModel.POTATOS.toString().toLowerCase()+".CustomModelData.Shoot2",3);
+
         cfg.addDefault("PortalCraftable",true);
 
         cfg.addDefault("PortalGunCrafts."+ PortalModel.CHELL.toString().toLowerCase()+".Craft",true);
@@ -62,5 +83,20 @@ public class PortalConfig {
         return Optional.ofNullable(PortalGunMode.valueOf(cfg.getString("PortalGunMode").toUpperCase())).orElse(PortalGunMode.INFINITY);
     }
 
+    public Material getPortalGunMaterial(PortalModel model){
+        return Material.getMaterial(cfg.getString("PortalGunResources."+model.toString().toLowerCase()+".Material"));
+    }
+
+    public int getPortalGunCustomModelDataNormal(PortalModel model){
+        return cfg.getInt("PortalGunResources."+model.toString().toLowerCase()+".CustomModelData.Normal");
+    }
+
+    public int getPortalGunCustomModelDataShoot1(PortalModel model){
+        return cfg.getInt("PortalGunResources."+model.toString().toLowerCase()+".CustomModelData.Shoot1");
+    }
+
+    public int getPortalGunCustomModelDataShoot2(PortalModel model){
+        return cfg.getInt("PortalGunResources."+model.toString().toLowerCase()+".CustomModelData.Shoot2");
+    }
 
 }

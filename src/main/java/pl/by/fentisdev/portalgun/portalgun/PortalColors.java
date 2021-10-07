@@ -1,27 +1,26 @@
 package pl.by.fentisdev.portalgun.portalgun;
 
 public enum PortalColors {
-    BLUE(PortalSound.PORTAL_OPEN_BLUE,2),
-    ORANGE(PortalSound.PORTAL_OPEN_ORANGE,3),
-    AQUA(PortalSound.PORTAL_OPEN_BLUE,2),
-    RED(PortalSound.PORTAL_OPEN_ORANGE,3),
-    YELLOW(PortalSound.PORTAL_OPEN_ORANGE,2),
-    PURPLE(PortalSound.PORTAL_OPEN_BLUE,3);
+    BLUE(PortalSound.PORTAL_OPEN_BLUE,true),
+    ORANGE(PortalSound.PORTAL_OPEN_ORANGE,false),
+    AQUA(PortalSound.PORTAL_OPEN_BLUE,true),
+    RED(PortalSound.PORTAL_OPEN_ORANGE,false),
+    YELLOW(PortalSound.PORTAL_OPEN_ORANGE,true),
+    PURPLE(PortalSound.PORTAL_OPEN_BLUE,false);
 
     private PortalSound teleportSound;
-    private int customModelData;
+    private boolean shoot1;
 
-    PortalColors(PortalSound teleportSound, int customModelData) {
+    PortalColors(PortalSound teleportSound, boolean shoot1) {
         this.teleportSound = teleportSound;
-        this.customModelData = customModelData;
+        this.shoot1 = shoot1;
     }
 
     public PortalSound getTeleportSound() {
         return teleportSound;
     }
 
-    public int getCustomModelData() {
-        return customModelData;
+    public boolean isShoot1() {
+        return shoot1;
     }
-
 }

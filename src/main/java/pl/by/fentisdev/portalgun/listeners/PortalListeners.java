@@ -65,7 +65,7 @@ public class PortalListeners implements Listener {
             if (nbt.hasKey("PortalID")){
                 return;
             }
-            if (po.getCustomModelData()==item.getItemMeta().getCustomModelData()){
+            if (po.getCustomModelDataNormal()==item.getItemMeta().getCustomModelData()){
                 PortalGun pg = null;
                 switch (PortalConfig.getInstance().getPortalGunMode()) {
                     case INFINITY:

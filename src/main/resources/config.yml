@@ -75,3 +75,28 @@ PortalGunCrafts:
     - W:WHITE_CONCRETE
     - P:POTATO
     - N:NETHER_STAR
+PortalGunResources:
+  chell:
+    Material: WOODEN_HOE
+    CustomModelData:
+      Normal: 1
+      Shoot1: 2
+      Shoot2: 3
+  atlas:
+    Material: IRON_HOE
+    CustomModelData:
+      Normal: 1
+      Shoot1: 2
+      Shoot2: 3
+  p_body:
+    Material: STONE_HOE
+    CustomModelData:
+      Normal: 1
+      Shoot1: 2
+      Shoot2: 3
+  potatos:
+    Material: GOLDEN_HOE
+    CustomModelData:
+      Normal: 1
+      Shoot1: 2
+      Shoot2: 3

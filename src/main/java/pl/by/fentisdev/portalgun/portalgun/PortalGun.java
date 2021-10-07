@@ -41,6 +41,7 @@ public class PortalGun {
         this.portalModel = portalModel;
         this.portal1 = portal1;
         this.portal2 = portal2;
+        this.online = isActivated();
     }
 
     public PortalModel getPortalModel() {
@@ -96,7 +97,7 @@ public class PortalGun {
         ItemMeta im = item.getItemMeta();
         im.setDisplayName(getPortalModel().getName());
         //im.setLore(Arrays.asList("§7#"+getId()));
-        im.setCustomModelData(colors==null? getPortalModel().getCustomModelData():colors.getCustomModelData());
+        im.setCustomModelData(colors==null? getPortalModel().getCustomModelDataNormal():(colors.isShoot1()?getPortalModel().getCustomModelDataShoot1():getPortalModel().getCustomModelDataShoot2()));
         item.setItemMeta(im);
         NBTTagCompound nbt = new NBTTagCompound(item);
         nbt.setInt("PortalID",getId());
