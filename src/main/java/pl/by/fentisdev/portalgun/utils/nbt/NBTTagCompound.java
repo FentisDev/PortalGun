@@ -12,10 +12,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class NBTTagCompound implements NBTBase{
+public abstract class NBTTagCompound implements NBTBase{
 
-    private ItemStack itemStack;
-    private Object nbtTagCompound;
+    public ItemStack itemStack;
+    public Object nbtTagCompound;
 
     public NBTTagCompound() {
         itemStack = new ItemStack(Material.STICK);
@@ -45,208 +45,83 @@ public class NBTTagCompound implements NBTBase{
         }
     }
 
-    private void createNewNBTTag(){
-        try {
-            String version = Bukkit.getServer().getClass().getPackage().getName().substring(23);
-            Class<?> tagCompoundClass;
-            if(Integer.parseInt(Bukkit.getServer().getVersion().split(":")[1].replace(")","").trim().replace(".",""))>=1170){
-                tagCompoundClass = Class.forName("net.minecraft.nbt.NBTTagCompound");
-            }else{
-                String nmsPack = "net.minecraft.server."+version;
-                tagCompoundClass = Class.forName(nmsPack+".NBTTagCompound");
-            }
-            nbtTagCompound=tagCompoundClass.newInstance();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
 
-    private void converter(){
-        try {
-            String version = Bukkit.getServer().getClass().getPackage().getName().substring(23);
-            Class<?> craftItemstackClass = Class.forName("org.bukkit.craftbukkit."+version+".inventory.CraftItemStack");
-            Method asNMSCopy = craftItemstackClass.getMethod("asNMSCopy", ItemStack.class);
-            asNMSCopy.setAccessible(true);
-            Object itemstack = asNMSCopy.invoke(null,itemStack);
-            asNMSCopy.setAccessible(false);
-            Method getTag = itemstack.getClass().getMethod("getTag");
-            getTag.setAccessible(true);
-            nbtTagCompound = getTag.invoke(itemstack);
-            getTag.setAccessible(false);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
+    public abstract void createNewNBTTag();
+
+    public abstract void converter();
 
     public ItemStack save(ItemStack itemStack){
         this.itemStack = itemStack;
         return save();
     }
 
-    public ItemStack save(){
-        try {
-            String version = Bukkit.getServer().getClass().getPackage().getName().substring(23);
-            Class<?> craftItemstackClass = Class.forName("org.bukkit.craftbukkit."+version+".inventory.CraftItemStack");
-            Method asNMSCopy = craftItemstackClass.getMethod("asNMSCopy", ItemStack.class);
-            Object itemstack = asNMSCopy.invoke(null,itemStack);
-            Class<?> tagCompoundClass;
-            Class<?> nmsItemstackClass;
-            if(Integer.parseInt(Bukkit.getServer().getVersion().split(":")[1].replace(")","").trim().replace(".",""))>=1170){
-                tagCompoundClass = Class.forName("net.minecraft.nbt.NBTTagCompound");
-                nmsItemstackClass = Class.forName("net.minecraft.world.item.ItemStack");
-            }else{
-                String nmsPack = "net.minecraft.server."+version;
-                tagCompoundClass = Class.forName(nmsPack+".NBTTagCompound");
-                nmsItemstackClass = Class.forName(nmsPack+".ItemStack");
-            }
-            Method setTag = itemstack.getClass().getMethod("setTag",tagCompoundClass);
-            setTag.invoke(itemstack,nbtTagCompound);
+    public abstract ItemStack save();
 
-            Method asBukkitCopy = craftItemstackClass.getMethod("asBukkitCopy",nmsItemstackClass);
-            itemStack = (ItemStack) asBukkitCopy.invoke(null,itemstack);
-        }catch (Exception ex){
-            ex.printStackTrace();
-        }
+    public abstract NBTTagCompound set(String key, Object object);
+
+    public abstract NBTTagCompound setByte(String key, byte value);
+
+    public abstract NBTTagCompound setShort(String key, short value);
+
+    public abstract NBTTagCompound setInt(String key, int value);
+
+    public abstract NBTTagCompound setLong(String key, long value);
+
+    public abstract NBTTagCompound setFloat(String key, float value);
+
+    public abstract NBTTagCompound setDouble(String key, double value);
+
+    public abstract NBTTagCompound setString(String key, String string);
+
+    public abstract NBTTagCompound setByteArray(String key, byte[] values);
+
+    public abstract NBTTagCompound setIntArray(String key, int[] values);
+
+    public abstract NBTTagCompound setBoolean(String key, boolean value);
+
+    public abstract Object get(String key);
+
+    public abstract byte getByte(String key);
+
+    public abstract short getShort(String key);
+
+    public abstract int getInt(String key);
+
+    public abstract long getLong(String key);
+
+    public abstract float getFloat(String key);
+
+    public abstract double getDouble(String key);
+
+    public abstract String getString(String key);
+
+    public abstract byte[] getByteArray(String key);
+
+    public abstract int[] getIntArray(String key);
+
+    public abstract boolean getBoolean(String key);
+
+    public abstract void remove(String key);
+
+    public abstract boolean isEmpty();
+
+    public abstract NBTTagCompound getCompound(String key);
+
+    public abstract Set<String> getKeys();
+
+    public abstract Map<String,Object> getMap();
+
+    public abstract boolean hasKey(String key);
+
+    public ItemStack getItemStack(){
         return itemStack;
-    }
-
-    public NBTTagCompound set(String key, Object object) {
-        insert(nbtTagCompound,"set",key,object.getClass(),object);
-        return this;
-    }
-
-    public NBTTagCompound setByte(String key, byte value) {
-        insert(nbtTagCompound,"setByte",key,byte.class,value);
-        return this;
-    }
-
-    public NBTTagCompound setShort(String key, short value) {
-        insert(nbtTagCompound,"setShort",key,short.class,value);
-        return this;
-    }
-
-    public NBTTagCompound setInt(String key, int value) {
-        insert(nbtTagCompound,"setInt",key,int.class,value);
-        return this;
-    }
-
-    public NBTTagCompound setLong(String key, long value) {
-        insert(nbtTagCompound,"setLong",key,long.class,value);
-        return this;
-    }
-
-    public NBTTagCompound setFloat(String key, float value) {
-        insert(nbtTagCompound,"setFloat",key,float.class,value);
-        return this;
-    }
-
-    public NBTTagCompound setDouble(String key, double value) {
-        insert(nbtTagCompound,"setDouble",key,double.class,value);
-        return this;
-    }
-
-    public NBTTagCompound setString(String key, String string) {
-        insert(nbtTagCompound,"setString",key,String.class,string);
-        return this;
-    }
-
-    public NBTTagCompound setByteArray(String key, byte[] values) {
-        insert(nbtTagCompound,"setByteArray",key,byte[].class,values);
-        return this;
-    }
-
-    public NBTTagCompound setIntArray(String key, int[] values) {
-        insert(nbtTagCompound,"setIntArray",key,int[].class,values);
-        return this;
-    }
-
-    public NBTTagCompound setBoolean(String key, boolean value) {
-        insert(nbtTagCompound,"setBoolean",key,boolean.class,value);
-        return this;
-    }
-
-    public Object get(String key){
-        return get(nbtTagCompound,"get",key);
-    }
-
-    public byte getByte(String key) {
-        return (byte)get(nbtTagCompound,"getByte",key);
-    }
-
-    public short getShort(String key) {
-        return (short)get(nbtTagCompound,"getShort",key);
-    }
-
-    public int getInt(String key) {
-        return (int)get(nbtTagCompound,"getInt",key);
-    }
-
-    public long getLong(String key) {
-        return (long)get(nbtTagCompound,"getLong",key);
-    }
-
-    public float getFloat(String key) {
-        return (float)get(nbtTagCompound,"getFloat",key);
-    }
-
-    public double getDouble(String key) {
-        return (double)get(nbtTagCompound,"getDouble",key);
-    }
-
-    public String getString(String key){
-        return (String)get(nbtTagCompound,"getString",key);
-    }
-
-    public byte[] getByteArray(String key) {
-        return (byte[]) get(nbtTagCompound,"getByteArray",key);
-    }
-
-    public int[] getIntArray(String key) {
-        return (int[]) get(nbtTagCompound,"getIntArray",key);
-    }
-
-    public boolean getBoolean(String key) {
-        return (boolean)get(nbtTagCompound,"getBoolean",key);
-    }
-
-    public void remove(String key){
-        get(nbtTagCompound,"remove",key);
-    }
-
-    public boolean isEmpty(){
-        return (boolean)get(nbtTagCompound,"isEmpty");
-    }
-
-    public NBTTagCompound getCompound(String key){
-        return new NBTTagCompound(get(nbtTagCompound,"getCompound",key));
-    }
-
-    public Set<String> getKeys(){
-        return (Set<String>)get(nbtTagCompound,"getKeys");
-    }
-
-    public Map<String,Object> getMap(){
-        Map<String,Object> map = new HashMap<>();
-        getKeys().forEach(k -> map.put(k,get(k)));
-        return map;
-    }
-
-    public boolean hasKey(String key) {
-        return (boolean)get(nbtTagCompound,"hasKey",key);
-    }
-
-    public ItemStack getItemStack() {
-        return itemStack;
-    }
+    };
 
     public JsonObject toJson(){
         return new GsonBuilder().create().toJsonTree(getMap()).getAsJsonObject();
     }
 
-
-
-
-    private void insert(Object nbtTagCompound, String method, String key,Class<?> clazz, Object obj) {
+    public void insert(Object nbtTagCompound, String method, String key,Class<?> clazz, Object obj) {
         invoker(method,nbtTagCompound,key,clazz,obj);
     }
 
@@ -260,15 +135,15 @@ public class NBTTagCompound implements NBTBase{
         }
     }
 
-    private Object get(Object nbtTagCompound, String method){
+    public Object get(Object nbtTagCompound, String method){
         return invokeMethod(method,nbtTagCompound);
     }
 
-    private Object get(Object nbtTagCompound, String method, String key){
+    public Object get(Object nbtTagCompound, String method, String key){
         return invokeMethodWithArgs(method,nbtTagCompound,key);
     }
 
-    private Class<?>[] toPrimitiveTypeArray(Class<?>[] classes) {
+    public Class<?>[] toPrimitiveTypeArray(Class<?>[] classes) {
         int a = classes != null ? classes.length : 0;
         Class<?>[] types = new Class<?>[a];
         for (int i = 0; i < a; i++)
@@ -276,7 +151,7 @@ public class NBTTagCompound implements NBTBase{
         return types;
     }
 
-    private boolean equalsTypeArray(Class<?>[] a, Class<?>[] o) {
+    public boolean equalsTypeArray(Class<?>[] a, Class<?>[] o) {
         if (a.length != o.length)
             return false;
         for (int i = 0; i < a.length; i++)
@@ -285,7 +160,7 @@ public class NBTTagCompound implements NBTBase{
         return true;
     }
 
-    private Method getMethod(String name, Class<?> clazz,
+    public Method getMethod(String name, Class<?> clazz,
                                     Class<?>... paramTypes) {
         Class<?>[] t = toPrimitiveTypeArray(paramTypes);
         for (Method m : clazz.getMethods()) {
@@ -296,7 +171,7 @@ public class NBTTagCompound implements NBTBase{
         return null;
     }
 
-    private Object invokeMethod(String method, Object obj) {
+    public Object invokeMethod(String method, Object obj) {
         try {
             return getMethod(method, obj.getClass()).invoke(obj);
         } catch (Exception e) {
@@ -305,7 +180,7 @@ public class NBTTagCompound implements NBTBase{
         }
     }
 
-    private Object invokeMethodWithArgs(String method, Object obj, Object... args) {
+    public Object invokeMethodWithArgs(String method, Object obj, Object... args) {
         try {
             Class[] argsClass = new Class[args.length];
             int i = 0;

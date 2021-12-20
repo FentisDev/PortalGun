@@ -17,6 +17,7 @@ import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.events.PlayerPortalShotEvent;
 import pl.by.fentisdev.portalgun.utils.ItemCreator;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
+import pl.by.fentisdev.portalgun.utils.nbt.NBTManager;
 import pl.by.fentisdev.portalgun.utils.nbt.NBTTagCompound;
 
 import java.util.Arrays;
@@ -99,7 +100,7 @@ public class PortalGun {
         //im.setLore(Arrays.asList("§7#"+getId()));
         im.setCustomModelData(colors==null? getPortalModel().getCustomModelDataNormal():(colors.isShoot1()?getPortalModel().getCustomModelDataShoot1():getPortalModel().getCustomModelDataShoot2()));
         item.setItemMeta(im);
-        NBTTagCompound nbt = new NBTTagCompound(item);
+        NBTTagCompound nbt = NBTManager.getInstance().createNBTTagCompound(item);
         nbt.setInt("PortalID",getId());
         nbt.setString("PortalFileUUID",PortalGunManager.getInstance().getPortalFileUUID().toString());
         return nbt.save();

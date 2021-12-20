@@ -16,6 +16,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.portalgun.*;
+import pl.by.fentisdev.portalgun.utils.nbt.NBTManager;
 import pl.by.fentisdev.portalgun.utils.nbt.NBTTagCompound;
 
 import java.util.Arrays;
@@ -104,7 +105,7 @@ public class PortalUtils {
     public PortalGun getPortalGun(ItemStack item) {
         PortalGun portalGun = null;
         if (item != null && item.hasItemMeta() && item.getItemMeta().hasCustomModelData()) {
-            NBTTagCompound nbt = new NBTTagCompound(item);
+            NBTTagCompound nbt = NBTManager.getInstance().createNBTTagCompound(item);
             if (nbt.hasKey("PortalID")&&nbt.hasKey("PortalFileUUID")&&nbt.getString("PortalFileUUID").equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString())) {
                 int id = nbt.getInt("PortalID");
                 portalGun = PortalGunManager.getInstance().getPortalGun(id);
@@ -116,7 +117,7 @@ public class PortalUtils {
     public PortalGun getPortalGun(Player p, ItemStack item){
         PortalGun portalGun = null;
         if (item!=null&&item.hasItemMeta()&&item.getItemMeta().hasCustomModelData()){
-            NBTTagCompound nbt = new NBTTagCompound(item);
+            NBTTagCompound nbt = NBTManager.getInstance().createNBTTagCompound(item);
             if (nbt.hasKey("PortalID")){
                 if (nbt.hasKey("PortalFileUUID")&&!nbt.getString("PortalFileUUID").equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString())){
                     portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType()));
@@ -202,8 +203,46 @@ public class PortalUtils {
         return pos1.getBlockX()==pos2.getBlockX()&&pos1.getBlockY()==pos2.getBlockY()&&pos1.getBlockZ()==pos2.getBlockZ();
     }
 
-    public void portalTeleport(Entity entity, Location loc, BlockFace face, boolean down){
+    public void portalTeleport(PortalGun portalGun, Entity entity, Portal toPortal){
+        Location loc = toPortal.getLocTeleport(entity).clone();
+        loc.setPitch(entity.getLocation().getPitch());
+        PortalSound.PORTAL_ENTER.playSound(entity.getLocation(),1,1);
+        //Portal fromPortal = portalGun.getPortal1().equals(toPortal)?portalGun.getPortal2():portalGun.getPortal1();;
+        Vector vec = entity.getVelocity();
+        double vecPower = Math.abs(entity.getVelocity().getX()+entity.getVelocity().getY()+entity.getVelocity().getZ());
+        if (toPortal.getPortalFace()!=BlockFace.UP){
+            float yaw = 0;
+            switch (toPortal.getPortalFace()){
+                case EAST:
+                    yaw = -90;
+                    vec = new Vector(vecPower,0,0);
+                    break;
+                case WEST:
+                    yaw = 90;
+                    vec = new Vector(-vecPower,0,0);
+                    break;
+                case NORTH:
+                    yaw = 180;
+                    vec = new Vector(0,0,-vecPower);
+                    break;
+                default:
+                    vec = new Vector(0,0,vecPower);
+                    break;
+            }
+            loc.setYaw(yaw);
+        }else{
+            loc.setYaw(entity.getLocation().getYaw());
+            vec = new Vector(0,vecPower,0);
+        }
+        vec = vec.multiply(2);
+        entity.teleport(loc);
+        entity.setVelocity(vec);
+        PortalSound.PORTAL_EXIT.playSound(entity.getLocation(),1,1);
+    }
+
+    public void portalTeleport(Entity entity, Location loc, Vector velocity, BlockFace face, boolean down){
         Vector vec = entity.getVelocity().clone();
+        Vector nvec = entity.getVelocity().clone();
         double vecY = vec.getY();
         if (vecY<0){
             vecY *= -1;
@@ -224,14 +263,24 @@ public class PortalUtils {
                     vec = new Vector(0,0,-vecY);
                     break;
                 default:
-                    vec = new Vector(0,0,vecY);
+                    Bukkit.broadcastMessage("SUL");
+                    vec = new Vector(0,0,vecY).multiply(12*(-(nvec.getX()+nvec.getY()+nvec.getZ())));
+                    vec.multiply(12);
                     break;
             }
             loc.setYaw(yaw);
         }else{
-            vec = new Vector(0, vecY, 0);
+            Bukkit.broadcastMessage("DOWN");
+            vec = new Vector(0, vecY, 0).multiply(12*(-(nvec.getX()+nvec.getY()+nvec.getZ())));
         }
         entity.teleport(loc);
+        entity.sendMessage("A velocidade é: "+-(vec.getX()+vec.getY()+vec.getZ()));
         entity.setVelocity(vec);
+        //entity.setVelocity( new Vector(0,1,0).multiply( -velocity.dot(vec) ) );
+        //Vector finalVec = vec;
+        /*Bukkit.getScheduler().scheduleSyncDelayedTask(PortalGunMain.getInstance(),()->{
+            entity.setVelocity(finalVec);
+        },1);*/
+        //entity.setVelocity( vec.multiply( -velocity.dot(vec) ) );
     }
 }

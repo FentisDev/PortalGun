@@ -26,6 +26,7 @@ import pl.by.fentisdev.portalgun.portalgun.PortalModel;
 import pl.by.fentisdev.portalgun.portalgun.PortalSound;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
+import pl.by.fentisdev.portalgun.utils.nbt.NBTManager;
 import pl.by.fentisdev.portalgun.utils.nbt.NBTTagCompound;
 
 import java.util.ArrayList;
@@ -61,7 +62,7 @@ public class PortalListeners implements Listener {
             if (po==null){
                 return;
             }
-            NBTTagCompound nbt = new NBTTagCompound(item);
+            NBTTagCompound nbt = NBTManager.getInstance().createNBTTagCompound(item);
             if (nbt.hasKey("PortalID")){
                 return;
             }
@@ -84,7 +85,7 @@ public class PortalListeners implements Listener {
                             pg=PortalGunManager.getInstance().createPortalGun(po);
                             PortalGunManager.getInstance().addPlayerPortalGun(p,pg);
                         }
-
+                        break;
                 }
                 if (pg!=null){
                     p.getInventory().setItemInMainHand(pg.getPortalItem());

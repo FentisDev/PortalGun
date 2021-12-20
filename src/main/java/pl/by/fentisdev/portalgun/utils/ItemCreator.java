@@ -10,6 +10,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import pl.by.fentisdev.portalgun.utils.nbt.NBTManager;
 import pl.by.fentisdev.portalgun.utils.nbt.NBTTagCompound;
 
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ public class ItemCreator {
     private int customModelData = 0;
     private List<EnchantmentAndLevel> enchantments = new ArrayList<>();
     private Book book = new Book();
-    private NBTTagCompound nbt = new NBTTagCompound();
+    private NBTTagCompound nbt = NBTManager.getInstance().createNBTTagCompound();
 
     public ItemCreator(ItemCreator copy){
         this.material = copy.getMaterial();
@@ -57,7 +58,7 @@ public class ItemCreator {
         } catch (Exception e) {
 
         }
-        this.nbt = new NBTTagCompound(stack);
+        this.nbt = NBTManager.getInstance().createNBTTagCompound(stack);
     }
 
     public ItemCreator(Material material) {

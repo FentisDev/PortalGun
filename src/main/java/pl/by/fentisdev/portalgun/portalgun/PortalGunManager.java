@@ -143,29 +143,33 @@ public class PortalGunManager {
                         for (Entity entity : portalGun.getPortal1().getEntityNearby()) {
                             EntityTeleportInPortalEvent event = new EntityTeleportInPortalEvent(portalGun,portalGun.getPortal1(),portalGun.getPortal2(),entity);
                             if (!event.isCancelled()){
-                                Location nloc = portalGun.getPortal2().getLocTeleport(entity).clone();
+                                PortalUtils.getInstance().portalTeleport(portalGun,entity,portalGun.getPortal2());
+                                /*Location nloc = portalGun.getPortal2().getLocTeleport(entity).clone();
                                 nloc.setYaw(entity.getLocation().getYaw());
                                 nloc.setPitch(entity.getLocation().getPitch());
                                 PortalSound.PORTAL_ENTER.playSound(entity.getLocation(),1,1);
-                                PortalUtils.getInstance().portalTeleport(entity,nloc,portalGun.getPortal2().getPortalFace(),portalGun.getPortal2().getPortalFace()==BlockFace.UP);
+                                PortalUtils.getInstance().portalTeleport(entity,nloc,portalGun.getPortal1().getEntityVelocity(entity),portalGun.getPortal2().getPortalFace(),portalGun.getPortal2().getPortalFace()==BlockFace.UP);
                                 PortalSound.PORTAL_EXIT.playSound(entity.getLocation(),1,1);
+                                */
                             }
                         }
                         for (Entity entity : portalGun.getPortal2().getEntityNearby()) {
                             EntityTeleportInPortalEvent event = new EntityTeleportInPortalEvent(portalGun,portalGun.getPortal2(),portalGun.getPortal1(),entity);
                             if (!event.isCancelled()){
-                                Location nloc = portalGun.getPortal1().getLocTeleport(entity).clone();
+                                PortalUtils.getInstance().portalTeleport(portalGun,entity,portalGun.getPortal1());
+                                /*Location nloc = portalGun.getPortal1().getLocTeleport(entity).clone();
                                 nloc.setYaw(entity.getLocation().getYaw());
                                 nloc.setPitch(entity.getLocation().getPitch());
                                 PortalSound.PORTAL_ENTER.playSound(entity.getLocation(),1,1);
-                                PortalUtils.getInstance().portalTeleport(entity,nloc,portalGun.getPortal1().getPortalFace(), portalGun.getPortal1().getPortalFace()==BlockFace.UP);
+                                PortalUtils.getInstance().portalTeleport(entity,nloc,portalGun.getPortal2().getEntityVelocity(entity),portalGun.getPortal1().getPortalFace(), portalGun.getPortal1().getPortalFace()==BlockFace.UP);
                                 PortalSound.PORTAL_EXIT.playSound(entity.getLocation(),1,1);
+                                 */
                             }
                         }
                     }
                 });
             }
-        },0,5);
+        },0,1);
     }
 
     public void stopPortalScheduler(){
