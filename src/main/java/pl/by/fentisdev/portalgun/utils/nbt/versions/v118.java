@@ -170,7 +170,7 @@ public class v118 extends NBTTagCompound{
     }
 
     public boolean getBoolean(String key) {
-        return (boolean)get(nbtTagCompound,"b",key);
+        return (boolean)get(nbtTagCompound,"q",key);
     }
 
     public void remove(String key){
@@ -186,7 +186,7 @@ public class v118 extends NBTTagCompound{
     }
 
     public Set<String> getKeys(){
-        return (Set<String>)get(nbtTagCompound,"b");
+        return (Set<String>)get(nbtTagCompound,"d");
     }
 
     public Map<String,Object> getMap(){

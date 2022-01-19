@@ -3,6 +3,7 @@ package pl.by.fentisdev.portalgun.listeners;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,7 +11,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -19,11 +22,13 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.world.WorldSaveEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.portalgun.PortalGun;
 import pl.by.fentisdev.portalgun.portalgun.PortalGunManager;
 import pl.by.fentisdev.portalgun.portalgun.PortalModel;
 import pl.by.fentisdev.portalgun.portalgun.PortalSound;
+import pl.by.fentisdev.portalgun.utils.ItemCreator;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
 import pl.by.fentisdev.portalgun.utils.nbt.NBTManager;
@@ -186,15 +191,43 @@ public class PortalListeners implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
+    public void onDropFromInv(InventoryClickEvent e){
+        Player p = (Player)e.getWhoClicked();
+        if (e.isCancelled()){
+            return;
+        }
+        if (e.getAction() == InventoryAction.DROP_ALL_CURSOR || e.getAction() == InventoryAction.DROP_ONE_CURSOR){
+            PortalGun portalGun;
+            if ((portalGun = PortalUtils.getInstance().getPortalGun(p,e.getCursor()))!=null) {
+                p.setItemOnCursor(new ItemCreator(e.getCursor()).getNBTTagCompound().setBoolean("Drop",true).save());
+                p.updateInventory();
+            }
+        }
+        if (e.getClick() == ClickType.DROP){
+            PortalGun portalGun;
+            if ((portalGun = PortalUtils.getInstance().getPortalGun((Player)e.getWhoClicked(),e.getCurrentItem()))!=null) {
+                e.setCurrentItem(new ItemCreator(e.getCurrentItem()).getNBTTagCompound().setBoolean("Drop",true).save());
+            }
+        }
+
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
     public void onDrop(PlayerDropItemEvent e){
         PortalGun portalGun;
         if ((portalGun = PortalUtils.getInstance().getPortalGun(e.getPlayer(),e.getItemDrop().getItemStack()))!=null) {
-            e.setCancelled(true);
+            if (new ItemCreator(e.getItemDrop().getItemStack()).getNBTTagCompound().hasKey("Drop")){
+                ItemCreator item = new ItemCreator(e.getItemDrop().getItemStack());
+                item.getNBTTagCompound().remove("Drop");
+                e.getItemDrop().setItemStack(item.getNBTTagCompound().save());
+                return;
+            }
+            e.getItemDrop().remove();
             portalGun.resetPortals();
             cd.add(e.getPlayer().getUniqueId());
             ItemStack item = portalGun.getPortalItem();
+            e.getPlayer().getInventory().setItemInMainHand(item);
             Bukkit.getScheduler().scheduleSyncDelayedTask(PortalGunMain.getInstance(), () -> {
-                e.getPlayer().getInventory().setItemInMainHand(item);
                 cd.remove(e.getPlayer().getUniqueId());
             }, 3);
         }
