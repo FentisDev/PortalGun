@@ -1,5 +1,6 @@
 package pl.by.fentisdev.portalgun;
 
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -37,6 +38,7 @@ public class PortalGunMain extends JavaPlugin {
         registryWorldGuard();
         PortalGunManager.getInstance().registryPortals();
         PortalGunManager.getInstance().startPortalScheduler();
+        Metrics metrics = new Metrics(PortalGunMain.getInstance(),15397);
         updateChecker();
     }
 

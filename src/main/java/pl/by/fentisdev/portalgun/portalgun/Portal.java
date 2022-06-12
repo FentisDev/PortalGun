@@ -173,7 +173,8 @@ public class Portal {
         try {
             Class<? extends ItemFrame> c;
             Class<? extends ItemFrame> c2;
-            if ((Integer.parseInt(Bukkit.getServer().getVersion().split(":")[1].replace(")","").trim().replace(".",""))>=1170)){
+
+            if (PortalUtils.getInstance().isGlowItemFrame()){
                 c=GlowItemFrame.class;
                 c2=GlowItemFrame.class;
             }else{
@@ -192,7 +193,7 @@ public class Portal {
             up.setItem(PortalUtils.getInstance().getPortalMapItem(PortalSide.UP,color));
             up.setInvulnerable(true);
 
-            if ((Integer.parseInt(Bukkit.getServer().getVersion().split(":")[1].replace(")","").trim().replace(".",""))>=1160)){
+            if (PortalUtils.getInstance().isInvisibleItemFrame()){
                 down.setVisible(false);
                 up.setVisible(false);
             }

@@ -1,6 +1,7 @@
 package pl.by.fentisdev.portalgun.utils;
 
 import com.google.gson.JsonObject;
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -8,6 +9,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
@@ -16,9 +18,8 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.portalgun.*;
-import pl.by.fentisdev.portalgun.utils.nbt.NBTManager;
-import pl.by.fentisdev.portalgun.utils.nbt.NBTTagCompound;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 public class PortalUtils {
@@ -42,6 +43,9 @@ public class PortalUtils {
     private ItemStack purpleUpMap;
     private ItemStack purpleDownMap;
 
+    private boolean glowItemFrame = false;
+    private boolean invisibleItemFrame = false;
+
     public PortalUtils() {
         blueUpMap = createPortalMapItem(PortalSide.UP,PortalColors.BLUE);
         blueDownMap = createPortalMapItem(PortalSide.DOWN,PortalColors.BLUE);
@@ -56,7 +60,24 @@ public class PortalUtils {
         purpleUpMap = createPortalMapItem(PortalSide.UP,PortalColors.PURPLE);
         purpleDownMap = createPortalMapItem(PortalSide.DOWN,PortalColors.PURPLE);
         PortalGunMain.getInstance().saveConfig();
+        try {
+            Class.forName("org.bukkit.entity.GlowItemFrame");
+            glowItemFrame = true;
+        }catch (ClassNotFoundException e){}
+        try {
+            ItemFrame.class.getMethod("isVisible");
+            invisibleItemFrame = true;
+        }catch (NoSuchMethodException e){}
     }
+
+    public boolean isGlowItemFrame() {
+        return glowItemFrame;
+    }
+
+    public boolean isInvisibleItemFrame() {
+        return invisibleItemFrame;
+    }
+
     public ItemStack getPortalMapItem(PortalSide side, PortalColors color){
         ItemStack item = null;
         switch (color){
@@ -105,9 +126,9 @@ public class PortalUtils {
     public PortalGun getPortalGun(ItemStack item) {
         PortalGun portalGun = null;
         if (item != null && item.hasItemMeta() && item.getItemMeta().hasCustomModelData()) {
-            NBTTagCompound nbt = NBTManager.getInstance().createNBTTagCompound(item);
+            NBTItem nbt = new NBTItem(item);
             if (nbt.hasKey("PortalID")&&nbt.hasKey("PortalFileUUID")&&nbt.getString("PortalFileUUID").equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString())) {
-                int id = nbt.getInt("PortalID");
+                int id = nbt.getInteger("PortalID");
                 portalGun = PortalGunManager.getInstance().getPortalGun(id);
             }
         }
@@ -117,17 +138,16 @@ public class PortalUtils {
     public PortalGun getPortalGun(Player p, ItemStack item){
         PortalGun portalGun = null;
         if (item!=null&&item.hasItemMeta()&&item.getItemMeta().hasCustomModelData()){
-            NBTTagCompound nbt = NBTManager.getInstance().createNBTTagCompound(item);
+            NBTItem nbt = new NBTItem(item);
             if (nbt.hasKey("PortalID")){
                 if (nbt.hasKey("PortalFileUUID")&&!nbt.getString("PortalFileUUID").equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString())){
                     portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType()));
-                    nbt.setInt("PortalID",portalGun.getId());
+                    nbt.setInteger("PortalID",portalGun.getId());
                     nbt.setString("PortalFileUUID",PortalGunManager.getInstance().getPortalFileUUID().toString());
-                    nbt.save();
                 }
                 switch (PortalConfig.getInstance().getPortalGunMode()){
                     case INFINITY:
-                        int id = nbt.getInt("PortalID");
+                        int id = nbt.getInteger("PortalID");
                         portalGun = PortalGunManager.getInstance().getPortalGun(id);
                         break;
                     case ONE_TYPE_PER_PLAYER:

@@ -4,14 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import de.tr7zw.changeme.nbtapi.NBTContainer;
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import pl.by.fentisdev.portalgun.utils.nbt.NBTManager;
-import pl.by.fentisdev.portalgun.utils.nbt.NBTTagCompound;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,7 +28,7 @@ public class ItemCreator {
     private int customModelData = 0;
     private List<EnchantmentAndLevel> enchantments = new ArrayList<>();
     private Book book = new Book();
-    private NBTTagCompound nbt = NBTManager.getInstance().createNBTTagCompound();
+    private NBTItem nbt;
 
     public ItemCreator(ItemCreator copy){
         this.material = copy.getMaterial();
@@ -37,7 +37,7 @@ public class ItemCreator {
         this.lore = copy.getLore();
         this.unbreakable = copy.isUnbreakable();
         this.customModelData = copy.getCustomModelData();
-        this.nbt = copy.getNBTTagCompound();
+        this.nbt = copy.getNBTItem();
     }
 
     public ItemCreator(ItemStack stack){
@@ -47,27 +47,25 @@ public class ItemCreator {
         }
         this.material = stack.getType();
         this.amount = stack.getAmount();
+        this.nbt = new NBTItem(stack);
         if (!stack.hasItemMeta()){
             return;
         }
         this.displayName = stack.getItemMeta().getDisplayName();
-        this.lore = stack.getItemMeta().getLore();
+        this.lore = stack.getItemMeta().hasLore()?stack.getItemMeta().getLore():new ArrayList<>();
         this.unbreakable = stack.getItemMeta().isUnbreakable();
-        try {
-            this.customModelData = stack.getItemMeta().getCustomModelData();
-        } catch (Exception e) {
-
-        }
-        this.nbt = NBTManager.getInstance().createNBTTagCompound(stack);
+        this.customModelData = stack.getItemMeta().hasCustomModelData()?stack.getItemMeta().getCustomModelData():0;
     }
 
     public ItemCreator(Material material) {
         this.material = material;
+        this.nbt = new NBTItem(new ItemStack(material));
     }
 
     public ItemCreator(Material material, int amount) {
         this.material = material;
         this.amount = amount;
+        this.nbt = new NBTItem(new ItemStack(material,amount));
     }
 
     public ItemCreator(JsonObject json){
@@ -80,16 +78,8 @@ public class ItemCreator {
         customModelData = json.get("CustomModelData").getAsInt();
         enchantments = gson.fromJson(json.getAsJsonArray("Enchantments").toString(),ArrayList.class);
         book = new Book(json.getAsJsonObject("Book"));
-
-        json.addProperty("Material",material.toString());
-        json.addProperty("Amount",amount);
-        json.addProperty("DisplayName",displayName);
-        json.add("Lore",gson.toJsonTree(lore).getAsJsonArray());
-        json.addProperty("Unbreakable",unbreakable);
-        json.addProperty("CustomModelData",customModelData);
-        json.add("Enchantments", gson.toJsonTree(enchantments).getAsJsonArray());
-        json.add("Book",book.getJson());
-        json.add("NBTTagCompound",nbt.toJson());
+        nbt = new NBTItem(new ItemStack(material,amount));
+        nbt.mergeCompound(new NBTContainer(json.get("NBTItem").getAsString()));
     }
 
 
@@ -184,11 +174,11 @@ public class ItemCreator {
         return this;
     }
 
-    public NBTTagCompound getNBTTagCompound() {
+    public NBTItem getNBTItem() {
         return nbt;
     }
 
-    public ItemCreator setNBTTagCompound(NBTTagCompound nbt) {
+    public ItemCreator setNBTItem(NBTItem nbt) {
         this.nbt = nbt;
         return this;
     }
@@ -200,11 +190,14 @@ public class ItemCreator {
 
     public ItemStack build(){
         ItemStack itemStack = new ItemStack(material,amount);
+        if (nbt!=null&&!nbt.getKeys().isEmpty()){
+            itemStack = nbt.getItem();
+        }
         ItemMeta meta = itemStack.getItemMeta();
         if (!displayName.isEmpty()){
             meta.setDisplayName(displayName);
         }
-        if (!lore.isEmpty()){
+        if (lore!=null&&!lore.isEmpty()){
             meta.setLore(lore);
         }
         meta.setUnbreakable(unbreakable);
@@ -233,9 +226,6 @@ public class ItemCreator {
             meta.setCustomModelData(customModelData);
         }
         itemStack.setItemMeta(meta);
-        if (nbt!=null&&!nbt.isEmpty()){
-            return nbt.save(itemStack);
-        }
         return itemStack;
     }
 
@@ -250,7 +240,7 @@ public class ItemCreator {
         json.addProperty("CustomModelData",customModelData);
         json.add("Enchantments", gson.toJsonTree(enchantments).getAsJsonArray());
         json.add("Book",book.getJson());
-        json.add("NBTTagCompound",nbt.toJson());
+        json.addProperty("NBTItem",nbt.toString());
         return json.getAsString();
     }
 

@@ -1,11 +1,13 @@
 package pl.by.fentisdev.portalgun.cmd;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.portalgun.*;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
@@ -146,16 +148,61 @@ public class PortalCMD implements TabExecutor {
                         }
                     }
                 }
+                if (strings[0].equalsIgnoreCase("whitelist")){
+                    if (strings.length>1){
+                        if (strings[1].equalsIgnoreCase("on")){
+                            PortalGunMain.getInstance().getConfig().set("WhiteList",true);
+                            PortalGunMain.getInstance().saveConfig();
+                            p.sendMessage("§aWhiteList is on!");
+                        }else if (strings[1].equalsIgnoreCase("off")) {
+                            PortalGunMain.getInstance().getConfig().set("WhiteList",false);
+                            PortalGunMain.getInstance().saveConfig();
+                            p.sendMessage("§aWhiteList is off!");
+                        }else if (strings[1].equalsIgnoreCase("add")||strings[1].equalsIgnoreCase("remove")){
+                            if (strings.length==3){
+                                try {
+                                    Material material = Material.getMaterial(strings[2].toUpperCase());
+                                    List<String> list = PortalGunMain.getInstance().getConfig().getStringList("WhiteListBlocks");
+                                    if(strings[1].equalsIgnoreCase("add")){
+                                        if (list.contains(material.toString())){
+                                            p.sendMessage("§cThis Material is already on the WhiteList!");
+                                        }else{
+                                            list.add(material.toString());
+                                            p.sendMessage("§aMaterial "+material+" has been added to the WhiteList!");
+                                        }
+                                    }else{
+                                        if (list.contains(material.toString())){
+                                            list.remove(material.toString());
+                                            p.sendMessage("§aMaterial "+material+" has bem removed from WhiteList!");
+                                        }else{
+                                            p.sendMessage("§cThis Material is not on the WhiteList!");
+                                        }
+                                    }
+                                    PortalGunMain.getInstance().getConfig().set("WhiteListBlocks",list);
+                                    PortalGunMain.getInstance().saveConfig();
+
+                                } catch (Exception e) {
+                                    p.sendMessage("§cMaterial not found.");
+                                }
+                            }
+                        }
+                    }else{
+                        p.sendMessage("§eWhitelist Blocks:");
+                        p.sendMessage(String.join("\n- ",PortalGunMain.getInstance().getConfig().getStringList("WhiteListBlocks")).toLowerCase());
+                    }
+                }
             }
         }
         return false;
     }
 
+    private List<String> possibleMaterials = null;
+
     @Override
     public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] strings) {
         List<String> players = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
         if (strings.length==1){
-            return Arrays.asList("give","reset","id");
+            return Arrays.asList("give","reset","id","whitelist");
         }else if (strings.length==2){
             if (strings[0].equalsIgnoreCase("give")){
                 return Arrays.asList("chell","p_body","atlas","potatos");
@@ -167,9 +214,27 @@ public class PortalCMD implements TabExecutor {
             if (strings[0].equalsIgnoreCase("id")){
                 return players;
             }
+            if (strings[0].equalsIgnoreCase("whitelist")){
+                return Arrays.asList("add","remove","on","off");
+            }
         }else if (strings.length==3){
             if (strings[0].equalsIgnoreCase("give")){
                 return players;
+            }
+            if (strings[0].equalsIgnoreCase("whitelist")){
+                if (strings[1].equalsIgnoreCase("add")){
+                    if (possibleMaterials == null) {
+                        possibleMaterials = new ArrayList<>();
+                        for (Material m : Material.values()) {
+                            if (m.isBlock() && m.isSolid()) {
+                                possibleMaterials.add(m.toString().toLowerCase());
+                            }
+                        }
+                    }
+                    return possibleMaterials;
+                }else if (strings[1].equalsIgnoreCase("remove")){
+                    return PortalGunMain.getInstance().getConfig().getStringList("WhiteListBlocks").stream().map(String::toLowerCase).collect(Collectors.toList());
+                }
             }
         }
         return null;

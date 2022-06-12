@@ -2,6 +2,7 @@
 Interdimensional: true
 PortalGunMode: INFINITY
 PortalCraftable: true
+PortalShootRange: 80
 WhiteList: true
 WhiteListBlocks:
 - WHITE_CONCRETE

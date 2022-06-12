@@ -1,5 +1,6 @@
 package pl.by.fentisdev.portalgun.listeners;
 
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -31,8 +32,6 @@ import pl.by.fentisdev.portalgun.portalgun.PortalSound;
 import pl.by.fentisdev.portalgun.utils.ItemCreator;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
-import pl.by.fentisdev.portalgun.utils.nbt.NBTManager;
-import pl.by.fentisdev.portalgun.utils.nbt.NBTTagCompound;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +66,7 @@ public class PortalListeners implements Listener {
             if (po==null){
                 return;
             }
-            NBTTagCompound nbt = NBTManager.getInstance().createNBTTagCompound(item);
+            NBTItem nbt = new NBTItem(item);
             if (nbt.hasKey("PortalID")){
                 return;
             }
@@ -192,21 +191,34 @@ public class PortalListeners implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onDropFromInv(InventoryClickEvent e){
-        Player p = (Player)e.getWhoClicked();
         if (e.isCancelled()){
             return;
         }
-        if (e.getAction() == InventoryAction.DROP_ALL_CURSOR || e.getAction() == InventoryAction.DROP_ONE_CURSOR){
-            PortalGun portalGun;
-            if ((portalGun = PortalUtils.getInstance().getPortalGun(p,e.getCursor()))!=null) {
-                p.setItemOnCursor(new ItemCreator(e.getCursor()).getNBTTagCompound().setBoolean("Drop",true).save());
-                p.updateInventory();
+        Player p = (Player)e.getWhoClicked();
+        if (e.getAction() == InventoryAction.DROP_ALL_CURSOR ||
+                e.getAction() == InventoryAction.DROP_ONE_CURSOR){
+            if (PortalUtils.getInstance().getPortalGun(p,e.getCursor())!=null) {
+                ItemCreator item = new ItemCreator(e.getCursor());
+                item.getNBTItem().setBoolean("Drop",true);
+                p.setItemOnCursor(item.build());
+                Bukkit.getScheduler().runTaskLater(PortalGunMain.getInstance(),r->p.updateInventory(),1);
+                /*
+                NBTItem nbtItem = new NBTItem(e.getCursor());
+                nbtItem.setBoolean("Drop",true);
+                p.setItemOnCursor(nbtItem.getItem());
+                 */
+                //p.updateInventory();
             }
         }
         if (e.getClick() == ClickType.DROP){
-            PortalGun portalGun;
-            if ((portalGun = PortalUtils.getInstance().getPortalGun((Player)e.getWhoClicked(),e.getCurrentItem()))!=null) {
-                e.setCurrentItem(new ItemCreator(e.getCurrentItem()).getNBTTagCompound().setBoolean("Drop",true).save());
+            if (PortalUtils.getInstance().getPortalGun(p,e.getCurrentItem())!=null) {
+                ItemCreator item = new ItemCreator(e.getCurrentItem());
+                item.getNBTItem().setBoolean("Drop",true);
+                e.setCurrentItem(item.build());
+                /*NBTItem nbtItem = new NBTItem(e.getCurrentItem());
+                nbtItem.setBoolean("Drop",true);
+                e.setCurrentItem(nbtItem.getItem());*/
+                //p.updateInventory();
             }
         }
 
@@ -216,10 +228,10 @@ public class PortalListeners implements Listener {
     public void onDrop(PlayerDropItemEvent e){
         PortalGun portalGun;
         if ((portalGun = PortalUtils.getInstance().getPortalGun(e.getPlayer(),e.getItemDrop().getItemStack()))!=null) {
-            if (new ItemCreator(e.getItemDrop().getItemStack()).getNBTTagCompound().hasKey("Drop")){
-                ItemCreator item = new ItemCreator(e.getItemDrop().getItemStack());
-                item.getNBTTagCompound().remove("Drop");
-                e.getItemDrop().setItemStack(item.getNBTTagCompound().save());
+            ItemCreator itemDrop = new ItemCreator(e.getItemDrop().getItemStack());
+            if (itemDrop.getNBTItem().hasKey("Drop")){
+                itemDrop.getNBTItem().removeKey("Drop");
+                e.getItemDrop().setItemStack(itemDrop.getNBTItem().getItem());
                 return;
             }
             e.getItemDrop().remove();

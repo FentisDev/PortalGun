@@ -1,5 +1,6 @@
 package pl.by.fentisdev.portalgun.portalgun;
 
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,8 +18,6 @@ import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.events.PlayerPortalShotEvent;
 import pl.by.fentisdev.portalgun.utils.ItemCreator;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
-import pl.by.fentisdev.portalgun.utils.nbt.NBTManager;
-import pl.by.fentisdev.portalgun.utils.nbt.NBTTagCompound;
 
 import java.util.Arrays;
 
@@ -94,16 +93,23 @@ public class PortalGun {
     }
 
     public ItemStack getPortalItem(PortalColors colors){
-        ItemStack item = new ItemStack(getPortalModel().getMaterialPortal());
+        ItemCreator item = new ItemCreator(getPortalModel().getMaterialPortal())
+                .setDisplayName(getPortalModel().getName())
+                .setCustomModelData(colors==null?getPortalModel().getCustomModelDataNormal():(colors.isShoot1()?getPortalModel().getCustomModelDataShoot1():getPortalModel().getCustomModelDataShoot2()));
+        NBTItem nbt = item.getNBTItem();
+        nbt.setInteger("PortalID",getId());
+        nbt.setString("PortalFileUUID",PortalGunManager.getInstance().getPortalFileUUID().toString());
+        return item.build();
+        /*ItemStack item = new ItemStack(getPortalModel().getMaterialPortal());
         ItemMeta im = item.getItemMeta();
         im.setDisplayName(getPortalModel().getName());
         //im.setLore(Arrays.asList("§7#"+getId()));
         im.setCustomModelData(colors==null? getPortalModel().getCustomModelDataNormal():(colors.isShoot1()?getPortalModel().getCustomModelDataShoot1():getPortalModel().getCustomModelDataShoot2()));
         item.setItemMeta(im);
-        NBTTagCompound nbt = NBTManager.getInstance().createNBTTagCompound(item);
-        nbt.setInt("PortalID",getId());
+        NBTItem nbt = new NBTItem(item);
+        nbt.setInteger("PortalID",getId());
         nbt.setString("PortalFileUUID",PortalGunManager.getInstance().getPortalFileUUID().toString());
-        return nbt.save();
+        return nbt.getItem();*/
     }
 
     public void shootPortalBlue(Location location, Player p){
@@ -131,7 +137,7 @@ public class PortalGun {
                 cancel();
             }
         }.runTaskTimer(PortalGunMain.getInstance(),5,0);*/
-        RayTraceResult t = location.getWorld().rayTraceBlocks(location, location.getDirection(), 80);
+        RayTraceResult t = location.getWorld().rayTraceBlocks(location, location.getDirection(), PortalGunMain.getInstance().getConfig().getInt("PortalShootRange"));
         if (t==null){
             return;
         }
