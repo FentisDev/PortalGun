@@ -113,6 +113,10 @@ public class PortalUtils {
             PortalGunMain.getInstance().getConfig().set("PortalMapID."+color.toString().toLowerCase()+"."+side.toString().toLowerCase(),mapView.getId());
         }else{
             mapView = Bukkit.getMap(mapid);
+            if (mapView==null){
+                mapView = Bukkit.createMap(Bukkit.getWorlds().get(0));
+                PortalGunMain.getInstance().getConfig().set("PortalMapID."+color.toString().toLowerCase()+"."+side.toString().toLowerCase(),mapView.getId());
+            }
         }
         mapView.getRenderers().clear();
         mapView.addRenderer(new PortalRender(side, color));

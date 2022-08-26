@@ -3,6 +3,7 @@ package pl.by.fentisdev.portalgun.utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 
@@ -26,6 +27,9 @@ public class RecipeCreator {
     }
 
     public void addRecipe(){
+        if (Bukkit.getRecipe(recipe.getKey())!=null){
+            return;
+        }
         Bukkit.addRecipe(recipe);
     }
 

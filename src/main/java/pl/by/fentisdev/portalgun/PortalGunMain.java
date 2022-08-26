@@ -35,6 +35,9 @@ public class PortalGunMain extends JavaPlugin {
         getCommand("portalgun").setExecutor(new PortalCMD());
         PortalConfig.getInstance().createConfig();
         registryCraft();
+        System.out.println("Reegistrando para testes");
+        registryCraft();
+
         registryWorldGuard();
         PortalGunManager.getInstance().registryPortals();
         PortalGunManager.getInstance().startPortalScheduler();
