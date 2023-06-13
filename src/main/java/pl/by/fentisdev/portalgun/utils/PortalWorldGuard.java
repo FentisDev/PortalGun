@@ -10,6 +10,7 @@ import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
+import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -17,28 +18,21 @@ import java.util.Map;
 
 public class PortalWorldGuard {
 
+    @Getter
     private static PortalWorldGuard instance = new PortalWorldGuard();
-
-    public static PortalWorldGuard getInstance() {
-        return instance;
-    }
-
+    @Getter
     public static BooleanFlag portalOpenFlag;
+    @Getter
     public static BooleanFlag portalGunUseFlag;
+    @Getter
+    public static BooleanFlag portalGunGrabFlag;
 
     public void load(){
         portalOpenFlag = register("portalgun-portal-open");
         portalGunUseFlag = register("portalgun-portalgun-use");
-        //System.out.println("PortalGun Plugin Flags registradas com sucesso!");
+        portalGunGrabFlag = register("portalgun-portalgun-grab");
     }
 
-    public BooleanFlag getPortalOpenFlag() {
-        return portalOpenFlag;
-    }
-
-    public BooleanFlag getPortalGunUseFlag() {
-        return portalGunUseFlag;
-    }
 
     public boolean verify(Player player, Location loc,BooleanFlag flag){
         boolean state = true;

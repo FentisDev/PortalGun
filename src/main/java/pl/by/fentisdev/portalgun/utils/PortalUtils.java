@@ -263,48 +263,4 @@ public class PortalUtils {
         entity.setVelocity(vec);
         PortalSound.PORTAL_EXIT.playSound(entity.getLocation(),1,1);
     }
-
-    public void portalTeleport(Entity entity, Location loc, Vector velocity, BlockFace face, boolean down){
-        Vector vec = entity.getVelocity().clone();
-        Vector nvec = entity.getVelocity().clone();
-        double vecY = vec.getY();
-        if (vecY<0){
-            vecY *= -1;
-        }
-        if (!down){
-            int yaw = 0;
-            switch (face){
-                case EAST:
-                    yaw = -90;
-                    vec = new Vector(vecY,0,0);
-                    break;
-                case WEST:
-                    yaw = 90;
-                    vec = new Vector(-vecY,0,0);
-                    break;
-                case NORTH:
-                    yaw = 180;
-                    vec = new Vector(0,0,-vecY);
-                    break;
-                default:
-                    Bukkit.broadcastMessage("SUL");
-                    vec = new Vector(0,0,vecY).multiply(12*(-(nvec.getX()+nvec.getY()+nvec.getZ())));
-                    vec.multiply(12);
-                    break;
-            }
-            loc.setYaw(yaw);
-        }else{
-            Bukkit.broadcastMessage("DOWN");
-            vec = new Vector(0, vecY, 0).multiply(12*(-(nvec.getX()+nvec.getY()+nvec.getZ())));
-        }
-        entity.teleport(loc);
-        entity.sendMessage("A velocidade é: "+-(vec.getX()+vec.getY()+vec.getZ()));
-        entity.setVelocity(vec);
-        //entity.setVelocity( new Vector(0,1,0).multiply( -velocity.dot(vec) ) );
-        //Vector finalVec = vec;
-        /*Bukkit.getScheduler().scheduleSyncDelayedTask(PortalGunMain.getInstance(),()->{
-            entity.setVelocity(finalVec);
-        },1);*/
-        //entity.setVelocity( vec.multiply( -velocity.dot(vec) ) );
-    }
 }

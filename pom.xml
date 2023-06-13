@@ -6,7 +6,7 @@
 
     <groupId>pl.by.fentisdev</groupId>
     <artifactId>PortalGun</artifactId>
-    <version>1.0.6-SNAPSHOT</version>
+    <version>1.0.7-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>PortalGun</name>
@@ -19,7 +19,11 @@
         <worldedit.version>7.0.0-SNAPSHOT</worldedit.version>
         <worldguard.version>7.0.5-SNAPSHOT</worldguard.version>
         <bstats.version>3.0.0</bstats.version>
-        <item-nbt-api.version>2.11.1</item-nbt-api.version>
+        <itemcreator.version>1.0.0-SNAPSHOT</itemcreator.version>
+        <inventorygui.version>1.0.0-SNAPSHOT</inventorygui.version>
+        <lombok.version>1.18.22</lombok.version>
+        <item-nbt-api.version>LATEST</item-nbt-api.version>
+        <grief.version>16.18</grief.version>
     </properties>
 
     <build>
@@ -96,7 +100,7 @@
                             <relocations>
                                 <relocation>
                                     <pattern>de.tr7zw.changeme.nbtapi</pattern>
-                                    <shadedPattern>de.tr7zw.portalgun.nbtapi</shadedPattern>
+                                    <shadedPattern>de.tr7zw.fentisdev.nbtapi</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.bstats</pattern>
@@ -135,6 +139,14 @@
             <url>https://repo.codemc.org/repository/maven-public/</url>
             <layout>default</layout>
         </repository>
+        <repository>
+            <id>gitlab-maven</id>
+            <url>https://gitlab.com/api/v4/projects/43522223/packages/maven</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -167,6 +179,40 @@
             <groupId>de.tr7zw</groupId>
             <artifactId>item-nbt-api</artifactId>
             <version>${item-nbt-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>pl.by.fentisdev</groupId>
+            <artifactId>ItemCreator</artifactId>
+            <version>${itemcreator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pl.by.fentisdev</groupId>
+            <artifactId>InventoryGui</artifactId>
+            <version>${inventorygui.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.TechFortress</groupId>
+            <artifactId>GriefPrevention</artifactId>
+            <version>${grief.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>gitlab-maven</id>
+            <url>https://gitlab.com/api/v4/projects/43522223/packages/maven</url>
+        </repository>
+        <snapshotRepository>
+            <id>gitlab-maven</id>
+            <url>https://gitlab.com/api/v4/projects/43522223/packages/maven</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

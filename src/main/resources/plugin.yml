@@ -3,7 +3,8 @@ main: pl.by.fentisdev.portalgun.PortalGunMain
 version: '${project.version}'
 author: FentisDeveloper
 api-version: 1.14
-softdepend: [WorldGuard]
+softdepend: [WorldGuard,GriefPrevention]
 commands:
   portalgun:
     permission: portalgun.admin
+    aliases: pg

@@ -1,7 +1,7 @@
 package pl.by.fentisdev.portalgun.portalgun;
 
 import org.bukkit.Material;
-import pl.by.fentisdev.portalgun.utils.ItemCreator;
+import pl.by.fentisdev.itemcreator.ItemCreator;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
 
 public enum PortalModel {
@@ -72,6 +72,20 @@ public enum PortalModel {
         PortalModel model = null;
         for (PortalModel value : values()) {
             if (value.getId()==id){
+                model=value;
+            }
+        }
+        return model;
+    }
+
+    public static PortalModel getPortalModelByItem(ItemCreator item){
+        PortalModel model = null;
+        for (PortalModel value : values()) {
+            if (value.getMaterialPortal()==item.getMaterial()&&(
+                            value.getCustomModelDataNormal()==item.getCustomModelData()||
+                            value.getCustomModelDataShoot1()==item.getCustomModelData()||
+                            value.getCustomModelDataShoot2()==item.getCustomModelData()
+                    )){
                 model=value;
             }
         }

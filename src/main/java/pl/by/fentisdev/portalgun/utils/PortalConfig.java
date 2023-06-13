@@ -7,8 +7,11 @@ import pl.by.fentisdev.portalgun.portalgun.PortalColors;
 import pl.by.fentisdev.portalgun.portalgun.PortalGunMode;
 import pl.by.fentisdev.portalgun.portalgun.PortalModel;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class PortalConfig {
 
@@ -19,11 +22,13 @@ public class PortalConfig {
     }
 
     private FileConfiguration cfg = PortalGunMain.getInstance().getConfig();
+    private List<Material> whitelistBlocks = new ArrayList<>();
 
     public void createConfig(){
         cfg.options().header("PortalGunMode:[INFINITY: Each Portal Gun created has its own portal. UNIQUE: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]");
         cfg.addDefault("PortalGunMode","INFINITY");
         cfg.addDefault("Interdimensional",true);
+        cfg.addDefault("GrabEntity",false);
         cfg.addDefault("WhiteList",true);
         cfg.addDefault("WhiteListBlocks", Arrays.asList(Material.WHITE_CONCRETE.toString(),Material.WHITE_WOOL.toString(),Material.QUARTZ_BLOCK.toString(),Material.SMOOTH_QUARTZ.toString()));
 
@@ -79,8 +84,51 @@ public class PortalConfig {
         return cfg.getBoolean("Interdimensional");
     }
 
+    public void setInterdimensional(boolean interdimensional){
+        cfg.set("Interdimensional",interdimensional);
+    }
+
     public PortalGunMode getPortalGunMode(){
         return Optional.ofNullable(PortalGunMode.valueOf(cfg.getString("PortalGunMode").toUpperCase())).orElse(PortalGunMode.INFINITY);
+    }
+
+    public boolean portalCraftable(){
+        return cfg.getBoolean("PortalCraftable");
+    }
+
+    public void setPortalCraftable(boolean portalCraftable){
+        cfg.set("PortalCraftable",portalCraftable);
+    }
+
+    public int getPortalShootRange(){
+        return cfg.getInt("PortalShootRange");
+    }
+
+    public void setPortalShootRange(int portalShootRange){
+        cfg.set("PortalShootRange",portalShootRange);
+    }
+
+    public boolean whiteList(){
+        return cfg.getBoolean("WhiteList");
+    }
+
+    public void setWhiteList(boolean whiteList){
+        cfg.set("WhiteList",whiteList);
+    }
+
+    public void setWhiteListBlocks(List<Material> whiteList){
+        cfg.set("WhiteListBlocks",whiteList.stream().map(Enum::toString).collect(Collectors.toList()));
+        whitelistBlocks.clear();
+        whitelistBlocks.addAll(whiteList);
+    }
+
+    public List<Material> getWhiteListBlocks(){
+        if (whitelistBlocks.isEmpty()){
+            for (String whiteListBlocks : cfg.getStringList("WhiteListBlocks")) {
+                whitelistBlocks.add(Material.valueOf(whiteListBlocks.toUpperCase()));
+            }
+        }
+        return whitelistBlocks;
     }
 
     public Material getPortalGunMaterial(PortalModel model){
@@ -97,6 +145,30 @@ public class PortalConfig {
 
     public int getPortalGunCustomModelDataShoot2(PortalModel model){
         return cfg.getInt("PortalGunResources."+model.toString().toLowerCase()+".CustomModelData.Shoot2");
+    }
+
+    public boolean canGrabEntity(){
+        return cfg.getBoolean("GrabEntity");
+    }
+
+    public void setCanGrabEntity(boolean canGrabEntity){
+        cfg.set("GrabEntity",canGrabEntity);
+    }
+
+    public boolean canCraft(PortalModel pm){
+        return cfg.getBoolean("PortalGunCrafts."+ pm.toString().toLowerCase()+".Craft");
+    }
+
+    public void setCanCraft(PortalModel pm, boolean canCraft){
+        cfg.set("PortalGunCrafts."+ pm.toString().toLowerCase()+".Craft",canCraft);
+    }
+    public void setRecipe(PortalModel pm, List<String> shape, List<String> ingredients){
+        cfg.set("PortalGunCrafts."+ pm.toString().toLowerCase()+".Shape",shape);
+        cfg.set("PortalGunCrafts."+ pm.toString().toLowerCase()+".Ingredients",ingredients);
+    }
+
+    public void saveConfig(){
+        PortalGunMain.getInstance().saveConfig();
     }
 
 }

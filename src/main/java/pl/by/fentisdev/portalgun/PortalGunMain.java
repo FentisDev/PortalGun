@@ -2,22 +2,21 @@ package pl.by.fentisdev.portalgun;
 
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import pl.by.fentisdev.itemcreator.DependenciesItemCreator;
 import pl.by.fentisdev.portalgun.cmd.PortalCMD;
+import pl.by.fentisdev.portalgun.listeners.GriefPreventionListeners;
 import pl.by.fentisdev.portalgun.listeners.PortalListeners;
 import pl.by.fentisdev.portalgun.listeners.WorldGuardListeners;
-import pl.by.fentisdev.portalgun.portalgun.*;
-import pl.by.fentisdev.portalgun.utils.PortalConfig;
-import pl.by.fentisdev.portalgun.utils.PortalWorldGuard;
-import pl.by.fentisdev.portalgun.utils.RecipeCreator;
-import pl.by.fentisdev.portalgun.utils.UpdateChecker;
+import pl.by.fentisdev.portalgun.portalgun.PortalGun;
+import pl.by.fentisdev.portalgun.portalgun.PortalGunManager;
+import pl.by.fentisdev.portalgun.portalgun.PortalModel;
+import pl.by.fentisdev.portalgun.utils.*;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class PortalGunMain extends JavaPlugin {
 
@@ -25,20 +24,21 @@ public class PortalGunMain extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        new DependenciesItemCreator(this);
         registryWorldGuardFlags();
     }
 
     @Override
     public void onEnable() {
         instance = this;
+        HoldingFile.getInstance().readHoldings();
         Bukkit.getPluginManager().registerEvents(new PortalListeners(),this);
         getCommand("portalgun").setExecutor(new PortalCMD());
         PortalConfig.getInstance().createConfig();
         registryCraft();
-        System.out.println("Reegistrando para testes");
-        registryCraft();
 
         registryWorldGuard();
+        registryGriefPrevention();
         PortalGunManager.getInstance().registryPortals();
         PortalGunManager.getInstance().startPortalScheduler();
         Metrics metrics = new Metrics(PortalGunMain.getInstance(),15397);
@@ -51,6 +51,11 @@ public class PortalGunMain extends JavaPlugin {
         PortalGunManager.getInstance().stopPortalScheduler();
         for (PortalGun pg : PortalGunManager.getInstance().getPortalGuns()){
             pg.resetPortals();
+        }
+        for (Entity entity : PortalGunManager.getInstance().getHolding().values()) {
+            if (entity!=null){
+                entity.setGravity(true);
+            }
         }
     }
 
@@ -68,6 +73,13 @@ public class PortalGunMain extends JavaPlugin {
         Plugin plugin;
         if ((plugin=Bukkit.getPluginManager().getPlugin("WorldGuard"))!=null&&plugin.isEnabled()){
             Bukkit.getPluginManager().registerEvents(new WorldGuardListeners(),this);
+        }
+    }
+
+    public void registryGriefPrevention(){
+        Plugin plugin;
+        if ((plugin=Bukkit.getPluginManager().getPlugin("GriefPrevention"))!=null&&plugin.isEnabled()){
+            Bukkit.getPluginManager().registerEvents(new GriefPreventionListeners(),this);
         }
     }
 

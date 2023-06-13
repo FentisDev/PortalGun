@@ -1,22 +1,22 @@
 package pl.by.fentisdev.portalgun.portalgun;
 
 import com.google.gson.*;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.events.EntityTeleportInPortalEvent;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class PortalGunManager {
@@ -30,6 +30,7 @@ public class PortalGunManager {
     private UUID portalFileUUID = UUID.randomUUID();
     private int portalScheduler;
     private List<PortalGun> portalGuns = new ArrayList<>();
+    private HashMap<Player,Entity> holding = new HashMap<>();
     private JsonObject portal_players = new JsonObject();
 
     public UUID getPortalFileUUID() {
@@ -130,6 +131,7 @@ public class PortalGunManager {
 
     public void startPortalScheduler(){
         portalScheduler = Bukkit.getScheduler().scheduleSyncRepeatingTask(PortalGunMain.getInstance(), new Runnable() {
+            List<Player> remove = new ArrayList<>();
             @Override
             public void run() {
                 if (Bukkit.getOnlinePlayers().size()==0||getPortalGuns().size()==0){
@@ -137,37 +139,77 @@ public class PortalGunManager {
                 }
                 getPortalGuns().forEach(portalGun -> {
                     if (portalGun.isOnline()){
-                        if (!PortalConfig.getInstance().isInterdimensional()&&portalGun.getPortal1().getLoc1().getWorld()!=portalGun.getPortal2().getLoc1().getWorld()){
+                        if (!PortalConfig.getInstance().isInterdimensional()&&
+                                portalGun.getPortal1().getLoc1().getWorld()!=portalGun.getPortal2().getLoc1().getWorld()){
                             return;
                         }
                         for (Entity entity : portalGun.getPortal1().getEntityNearby()) {
                             EntityTeleportInPortalEvent event = new EntityTeleportInPortalEvent(portalGun,portalGun.getPortal1(),portalGun.getPortal2(),entity);
                             if (!event.isCancelled()){
                                 PortalUtils.getInstance().portalTeleport(portalGun,entity,portalGun.getPortal2());
-                                /*Location nloc = portalGun.getPortal2().getLocTeleport(entity).clone();
-                                nloc.setYaw(entity.getLocation().getYaw());
-                                nloc.setPitch(entity.getLocation().getPitch());
-                                PortalSound.PORTAL_ENTER.playSound(entity.getLocation(),1,1);
-                                PortalUtils.getInstance().portalTeleport(entity,nloc,portalGun.getPortal1().getEntityVelocity(entity),portalGun.getPortal2().getPortalFace(),portalGun.getPortal2().getPortalFace()==BlockFace.UP);
-                                PortalSound.PORTAL_EXIT.playSound(entity.getLocation(),1,1);
-                                */
                             }
                         }
                         for (Entity entity : portalGun.getPortal2().getEntityNearby()) {
                             EntityTeleportInPortalEvent event = new EntityTeleportInPortalEvent(portalGun,portalGun.getPortal2(),portalGun.getPortal1(),entity);
                             if (!event.isCancelled()){
                                 PortalUtils.getInstance().portalTeleport(portalGun,entity,portalGun.getPortal1());
-                                /*Location nloc = portalGun.getPortal1().getLocTeleport(entity).clone();
-                                nloc.setYaw(entity.getLocation().getYaw());
-                                nloc.setPitch(entity.getLocation().getPitch());
-                                PortalSound.PORTAL_ENTER.playSound(entity.getLocation(),1,1);
-                                PortalUtils.getInstance().portalTeleport(entity,nloc,portalGun.getPortal2().getEntityVelocity(entity),portalGun.getPortal1().getPortalFace(), portalGun.getPortal1().getPortalFace()==BlockFace.UP);
-                                PortalSound.PORTAL_EXIT.playSound(entity.getLocation(),1,1);
-                                 */
                             }
                         }
                     }
                 });
+                getHolding().entrySet().forEach(h->{
+                    Player p = h.getKey();
+                    PortalGun pg = null;
+                    if ((pg=PortalUtils.getInstance().getPortalGun(p,p.getInventory().getItemInMainHand()))==null){
+                        pg=PortalUtils.getInstance().getPortalGun(p,p.getInventory().getItemInOffHand());
+                    }
+                    if (pg==null||h.getValue().isDead()){
+                        remove.add(p);
+                        return;
+                    }
+                    Location eyeLoc = p.getEyeLocation();
+                    RayTraceResult t = p.getWorld().rayTraceBlocks(eyeLoc, eyeLoc.getDirection(), 3, FluidCollisionMode.NEVER,true);
+                    Location nloc = null;
+                    BlockFace bf = null;
+                    if (t!=null){
+                        nloc = t.getHitPosition().toLocation(p.getWorld());
+                        bf = t.getHitBlockFace();
+                        if (bf==BlockFace.NORTH||bf==BlockFace.SOUTH||bf==BlockFace.EAST||bf==BlockFace.WEST){
+                            Vector direction = p.getEyeLocation().getDirection().normalize();
+                            double x = direction.getX() * (h.getValue().getBoundingBox().getWidthX()/2);
+                            double y = direction.getY() * (h.getValue().getBoundingBox().getHeight()/2);
+                            double z = direction.getZ() * (h.getValue().getBoundingBox().getWidthZ()/2);
+                            nloc.subtract(x,-y,z);
+                        }
+                        nloc.setYaw(p.getLocation().getYaw());
+                        nloc.setPitch(p.getLocation().getPitch());
+                    }else{
+                        double a = 2;
+                        nloc = p.getEyeLocation();
+                        Vector direction = nloc.getDirection().normalize();
+                        double x = direction.getX() * a;
+                        double y = direction.getY() * a;
+                        double z = direction.getZ() * a;
+                        nloc.add(x,y-(h.getValue().getBoundingBox().getHeight()/2),z);
+                    }
+                    if (nloc!=null){
+                        /*BoundingBox box = h.getValue().getBoundingBox();
+                        if (!nloc.getBlock().getRelative(BlockFace.NORTH).isPassable() ||
+                                !nloc.getBlock().getRelative(BlockFace.SOUTH).isPassable()){
+                            nloc.setZ(((int)nloc.getZ())+box.getWidthZ());
+                        }
+                        if (!nloc.getBlock().getRelative(BlockFace.WEST).isPassable() ||
+                                !nloc.getBlock().getRelative(BlockFace.EAST).isPassable()){
+                            nloc.setX(((int)nloc.getX())-box.getWidthZ());
+                        }
+                        if (!nloc.getBlock().getRelative(BlockFace.UP).isPassable()){
+                            nloc.setY(((int)nloc.getY())-box.getHeight());
+                        }*/
+                        h.getValue().teleport(nloc);
+                    }
+                });
+                remove.forEach(p->removeHolding(p,null));
+                remove.clear();
             }
         },0,1);
     }
@@ -246,6 +288,45 @@ public class PortalGunManager {
             }
         }catch (FileNotFoundException e){
 
+        }
+    }
+
+    public HashMap<Player, Entity> getHolding() {
+        return holding;
+    }
+
+    public Entity getHolding(Player p){
+        return holding.get(p);
+    }
+
+    public boolean beingHeld(Entity e){
+        return holding.containsValue(e);
+    }
+
+    public void addHolding(Player p, Entity e){
+        e.setGravity(false);
+        this.holding.put(p,e);
+        PortalSound.PORTAL_GRAB_ENTITY.playSound(p.getLocation(),1,1.5f);
+    }
+
+    public void removeHolding(Player p, Entity e){
+        if (p!=null&&holding.containsKey(p)){
+            Entity en = this.holding.get(p);
+            en.setGravity(true);
+            en.setFallDistance(0);
+            this.holding.remove(p);
+            PortalSound.PORTAL_DROP_ENTITY.playSound(p.getLocation(),1,1.5f);
+        } else if (e!=null) {
+            List<Player> rm = new ArrayList<>();
+            holding.entrySet().forEach(h->{
+                if (h.getValue().equals(e)){
+                    rm.add(h.getKey());
+                }
+            });
+            for (Player player : rm) {
+                holding.get(p).setGravity(true);
+                holding.remove(player);
+            }
         }
     }
 }

@@ -11,15 +11,12 @@ import org.bukkit.entity.Hanging;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.events.PlayerPortalShotEvent;
-import pl.by.fentisdev.portalgun.utils.ItemCreator;
+import pl.by.fentisdev.itemcreator.ItemCreator;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
-
-import java.util.Arrays;
 
 public class PortalGun {
 
@@ -41,7 +38,7 @@ public class PortalGun {
         this.portalModel = portalModel;
         this.portal1 = portal1;
         this.portal2 = portal2;
-        this.online = isActivated();
+        updateStatus();
     }
 
     public PortalModel getPortalModel() {
@@ -66,6 +63,10 @@ public class PortalGun {
         return portal1!=null && portal1.isPortalItemFrame(itemFrame)?portal1:portal2!=null && portal2.isPortalItemFrame(itemFrame)?portal2:null;
     }
 
+    public void updateStatus(){
+        online = isActivated();
+    }
+
     public boolean isOnline() {
         return online;
     }
@@ -78,6 +79,7 @@ public class PortalGun {
     public void resetPortals(){
         portal1.resetPortal();
         portal2.resetPortal();
+        updateStatus();
     }
 
     public boolean isTeleportable(){
@@ -96,20 +98,10 @@ public class PortalGun {
         ItemCreator item = new ItemCreator(getPortalModel().getMaterialPortal())
                 .setDisplayName(getPortalModel().getName())
                 .setCustomModelData(colors==null?getPortalModel().getCustomModelDataNormal():(colors.isShoot1()?getPortalModel().getCustomModelDataShoot1():getPortalModel().getCustomModelDataShoot2()));
-        NBTItem nbt = item.getNBTItem();
+        NBTItem nbt = item.getNBTTagCompound();
         nbt.setInteger("PortalID",getId());
         nbt.setString("PortalFileUUID",PortalGunManager.getInstance().getPortalFileUUID().toString());
         return item.build();
-        /*ItemStack item = new ItemStack(getPortalModel().getMaterialPortal());
-        ItemMeta im = item.getItemMeta();
-        im.setDisplayName(getPortalModel().getName());
-        //im.setLore(Arrays.asList("§7#"+getId()));
-        im.setCustomModelData(colors==null? getPortalModel().getCustomModelDataNormal():(colors.isShoot1()?getPortalModel().getCustomModelDataShoot1():getPortalModel().getCustomModelDataShoot2()));
-        item.setItemMeta(im);
-        NBTItem nbt = new NBTItem(item);
-        nbt.setInteger("PortalID",getId());
-        nbt.setString("PortalFileUUID",PortalGunManager.getInstance().getPortalFileUUID().toString());
-        return nbt.getItem();*/
     }
 
     public void shootPortalBlue(Location location, Player p){
@@ -130,13 +122,6 @@ public class PortalGun {
                 cooldown = false;
             }
         },5);
-        /*new BukkitRunnable(){
-            @Override
-            public void run() {
-                cooldown=false;
-                cancel();
-            }
-        }.runTaskTimer(PortalGunMain.getInstance(),5,0);*/
         RayTraceResult t = location.getWorld().rayTraceBlocks(location, location.getDirection(), PortalGunMain.getInstance().getConfig().getInt("PortalShootRange"));
         if (t==null){
             return;
@@ -307,13 +292,6 @@ public class PortalGun {
                 }
                 if (checkSurface(up,face)&&checkSurface(down,face)){
                     Portal portal = portalBlue?this.getPortal1():this.getPortal2();
-                    /*if (portalBlue) {
-                        portal = this.getPortal1();
-                        p.getInventory().setItemInMainHand(this.getPortalItem(this.getPortalModel().getPortalColor1()));
-                    } else {
-                        portal = this.getPortal2();
-                        p.getInventory().setItemInMainHand(this.getPortalItem(this.getPortalModel().getPortalColor2()));
-                    }*/
                     PlayerPortalShotEvent event = new PlayerPortalShotEvent(this,portal,t.getHitBlock(),p);
                     Bukkit.getPluginManager().callEvent(event);
                     if (event.isCancelled()){
@@ -326,7 +304,7 @@ public class PortalGun {
                         portal.setPortal(down, up, t.getHitBlockFace(), direction);
                     }
                     PortalSound.PORTAL_GUN_SHOOT.playSound(location, 1, 1);
-                    online = isActivated();
+
                 }else{
                     PortalSound.PORTAL_INVALID_SURFACE.playSound(t.getHitPosition().toLocation(location.getWorld()), 1, 1);
                 }
@@ -334,6 +312,7 @@ public class PortalGun {
                 PortalSound.PORTAL_INVALID_SURFACE.playSound(t.getHitPosition().toLocation(location.getWorld()), 1, 1);
             }
         }
+        updateStatus();
     }
 
     private boolean checkSurface(Location loc, BlockFace face){
@@ -345,5 +324,4 @@ public class PortalGun {
         }
         return status;
     }
-
 }

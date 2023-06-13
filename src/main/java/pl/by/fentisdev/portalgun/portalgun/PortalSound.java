@@ -13,7 +13,9 @@ public enum PortalSound {
     PORTAL_CLOSE("portal_close",Sound.BLOCK_LAVA_EXTINGUISH),
     PORTAL_ENTER("portal_enter",Sound.ENTITY_ENDERMAN_TELEPORT),
     PORTAL_EXIT("portal_exit",Sound.ENTITY_ENDERMAN_TELEPORT),
-    PORTAL_INVALID_SURFACE("portal_invalid_surface",Sound.ENTITY_BLAZE_HURT);
+    PORTAL_INVALID_SURFACE("portal_invalid_surface",Sound.ENTITY_BLAZE_HURT),
+    PORTAL_GRAB_ENTITY("portal_grab_entity",Sound.ENTITY_ILLUSIONER_PREPARE_BLINDNESS),
+    PORTAL_DROP_ENTITY("portal_drop_entity",Sound.ENTITY_ILLUSIONER_PREPARE_MIRROR);
 
     private String name;
     private Sound noResource;

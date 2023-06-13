@@ -130,14 +130,14 @@ public class Portal {
         double z = face== BlockFace.SOUTH||face== BlockFace.NORTH?0.034:0.1;
         if (up!=null){
             for (Entity nearbyEntity : up.getNearbyEntities(x, y, z)) {
-                if (nearbyEntity instanceof LivingEntity || nearbyEntity instanceof Item){
+                if ((nearbyEntity instanceof LivingEntity || nearbyEntity instanceof Item) && !PortalGunManager.getInstance().beingHeld(nearbyEntity)){
                     en.add(nearbyEntity);
                 }
             }
         }
         if (down!=null){
             for (Entity nearbyEntity : down.getNearbyEntities(x, y, z)) {
-                if ((nearbyEntity instanceof LivingEntity || nearbyEntity instanceof Item) && !en.contains(nearbyEntity)){
+                if ((nearbyEntity instanceof LivingEntity || nearbyEntity instanceof Item) && !en.contains(nearbyEntity) && !PortalGunManager.getInstance().beingHeld(nearbyEntity)){
                     en.add(nearbyEntity);
                 }
             }

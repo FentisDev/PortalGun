@@ -5,11 +5,14 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Shulker;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.portalgun.*;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
+import pl.by.fentisdev.portalgun.utils.PortalConfigGui;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
 
 import java.util.ArrayList;
@@ -41,11 +44,10 @@ public class PortalCMD implements TabExecutor {
                             po= PortalModel.POTATOS;
                         }
                         if (po!=null){
-                            Player to = p;
+                            Player to = null;
                             if (strings.length>2&&Bukkit.getPlayer(strings[2])!=null){
                                 to=Bukkit.getPlayer(strings[2]);
                             }else{
-                                to=null;
                                 p.sendMessage("§cPlayer not found!");
                             }
                             if (to!=null){
@@ -151,34 +153,34 @@ public class PortalCMD implements TabExecutor {
                 if (strings[0].equalsIgnoreCase("whitelist")){
                     if (strings.length>1){
                         if (strings[1].equalsIgnoreCase("on")){
-                            PortalGunMain.getInstance().getConfig().set("WhiteList",true);
+                            PortalConfig.getInstance().setWhiteList(true);
                             PortalGunMain.getInstance().saveConfig();
                             p.sendMessage("§aWhiteList is on!");
                         }else if (strings[1].equalsIgnoreCase("off")) {
-                            PortalGunMain.getInstance().getConfig().set("WhiteList",false);
+                            PortalConfig.getInstance().setWhiteList(false);
                             PortalGunMain.getInstance().saveConfig();
                             p.sendMessage("§aWhiteList is off!");
                         }else if (strings[1].equalsIgnoreCase("add")||strings[1].equalsIgnoreCase("remove")){
                             if (strings.length==3){
                                 try {
                                     Material material = Material.getMaterial(strings[2].toUpperCase());
-                                    List<String> list = PortalGunMain.getInstance().getConfig().getStringList("WhiteListBlocks");
+                                    List<Material> list = PortalConfig.getInstance().getWhiteListBlocks();
                                     if(strings[1].equalsIgnoreCase("add")){
-                                        if (list.contains(material.toString())){
+                                        if (list.contains(material)){
                                             p.sendMessage("§cThis Material is already on the WhiteList!");
                                         }else{
-                                            list.add(material.toString());
+                                            list.add(material);
                                             p.sendMessage("§aMaterial "+material+" has been added to the WhiteList!");
                                         }
                                     }else{
-                                        if (list.contains(material.toString())){
-                                            list.remove(material.toString());
+                                        if (list.contains(material)){
+                                            list.remove(material);
                                             p.sendMessage("§aMaterial "+material+" has bem removed from WhiteList!");
                                         }else{
                                             p.sendMessage("§cThis Material is not on the WhiteList!");
                                         }
                                     }
-                                    PortalGunMain.getInstance().getConfig().set("WhiteListBlocks",list);
+                                    PortalConfig.getInstance().setWhiteListBlocks(list);
                                     PortalGunMain.getInstance().saveConfig();
 
                                 } catch (Exception e) {
@@ -188,8 +190,11 @@ public class PortalCMD implements TabExecutor {
                         }
                     }else{
                         p.sendMessage("§eWhitelist Blocks:");
-                        p.sendMessage(String.join("\n- ",PortalGunMain.getInstance().getConfig().getStringList("WhiteListBlocks")).toLowerCase());
+                        p.sendMessage(String.join("\n- ",PortalConfig.getInstance().getWhiteListBlocks().stream().map(Enum::toString).collect(Collectors.toList())).toLowerCase());
                     }
+                }
+                if (strings[0].equalsIgnoreCase("config")){
+                    PortalConfigGui.getInstance().open(p);
                 }
             }
         }
@@ -202,7 +207,7 @@ public class PortalCMD implements TabExecutor {
     public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] strings) {
         List<String> players = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
         if (strings.length==1){
-            return Arrays.asList("give","reset","id","whitelist");
+            return Arrays.asList("config","give","reset","id","whitelist");
         }else if (strings.length==2){
             if (strings[0].equalsIgnoreCase("give")){
                 return Arrays.asList("chell","p_body","atlas","potatos");
@@ -233,7 +238,7 @@ public class PortalCMD implements TabExecutor {
                     }
                     return possibleMaterials;
                 }else if (strings[1].equalsIgnoreCase("remove")){
-                    return PortalGunMain.getInstance().getConfig().getStringList("WhiteListBlocks").stream().map(String::toLowerCase).collect(Collectors.toList());
+                    return PortalConfig.getInstance().getWhiteListBlocks().stream().map(m->m.toString().toLowerCase()).collect(Collectors.toList());
                 }
             }
         }

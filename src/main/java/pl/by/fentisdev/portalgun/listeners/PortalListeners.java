@@ -1,35 +1,32 @@
 package pl.by.fentisdev.portalgun.listeners;
 
 import de.tr7zw.changeme.nbtapi.NBTItem;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
+import org.bukkit.*;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.*;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.world.WorldSaveEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.util.RayTraceResult;
 import pl.by.fentisdev.portalgun.PortalGunMain;
+import pl.by.fentisdev.portalgun.events.PortalGunDropEntityEvent;
+import pl.by.fentisdev.portalgun.events.PortalGunGrabEntityEvent;
 import pl.by.fentisdev.portalgun.portalgun.PortalGun;
 import pl.by.fentisdev.portalgun.portalgun.PortalGunManager;
 import pl.by.fentisdev.portalgun.portalgun.PortalModel;
 import pl.by.fentisdev.portalgun.portalgun.PortalSound;
-import pl.by.fentisdev.portalgun.utils.ItemCreator;
+import pl.by.fentisdev.itemcreator.ItemCreator;
+import pl.by.fentisdev.portalgun.utils.HoldingFile;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
 
@@ -39,6 +36,36 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class PortalListeners implements Listener {
+
+    boolean holdingRemove = true;
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent e){
+        if (!holdingRemove){
+            return;
+        }
+        holdingRemove=false;
+        List<UUID> remove = new ArrayList<>();
+        for (UUID uuid : HoldingFile.getInstance().getHoldingsList()) {
+            for (World world : Bukkit.getWorlds()) {
+                for (Chunk loadedChunk : world.getLoadedChunks()) {
+                    for (Entity entity : loadedChunk.getEntities()) {
+                        if (entity.getUniqueId().toString().equalsIgnoreCase(uuid.toString())){
+                            remove.add(entity.getUniqueId());
+                            entity.setGravity(true);
+                        }
+                    }
+                }
+            }
+        }
+        HoldingFile.getInstance().removeHolding(remove);
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e){
+        Player p = e.getPlayer();
+        PortalGunManager.getInstance().removeHolding(p,null);
+    }
 
     private final List<UUID> cd = new ArrayList<>();
 
@@ -111,6 +138,16 @@ public class PortalListeners implements Listener {
                 portalGun.getPortal2().renderPortal();
             }
         }
+        List<UUID> remove = new ArrayList<>();
+        for (UUID uuid : HoldingFile.getInstance().getHoldingsList()) {
+            for (Entity entity : e.getChunk().getEntities()) {
+                if (entity.getUniqueId().toString().equalsIgnoreCase(uuid.toString())){
+                    remove.add(entity.getUniqueId());
+                    entity.setGravity(true);
+                }
+            }
+        }
+        HoldingFile.getInstance().removeHolding(remove);
     }
 
     @EventHandler
@@ -161,9 +198,11 @@ public class PortalListeners implements Listener {
                     for (PortalGun portalGun : PortalGunManager.getInstance().getPortalGuns()) {
                         if (portalGun.getPortal1().isPortalItemFrame(itemFrame)){
                             portalGun.getPortal1().resetPortal();
+                            portalGun.updateStatus();
                         }
                         if (portalGun.getPortal2().isPortalItemFrame(itemFrame)){
                             portalGun.getPortal2().resetPortal();
+                            portalGun.updateStatus();
                         }
                     }
                 }
@@ -199,29 +238,18 @@ public class PortalListeners implements Listener {
                 e.getAction() == InventoryAction.DROP_ONE_CURSOR){
             if (PortalUtils.getInstance().getPortalGun(p,e.getCursor())!=null) {
                 ItemCreator item = new ItemCreator(e.getCursor());
-                item.getNBTItem().setBoolean("Drop",true);
+                item.getNBTTagCompound().setBoolean("Drop",true);
                 p.setItemOnCursor(item.build());
                 Bukkit.getScheduler().runTaskLater(PortalGunMain.getInstance(),r->p.updateInventory(),1);
-                /*
-                NBTItem nbtItem = new NBTItem(e.getCursor());
-                nbtItem.setBoolean("Drop",true);
-                p.setItemOnCursor(nbtItem.getItem());
-                 */
-                //p.updateInventory();
             }
         }
         if (e.getClick() == ClickType.DROP){
             if (PortalUtils.getInstance().getPortalGun(p,e.getCurrentItem())!=null) {
                 ItemCreator item = new ItemCreator(e.getCurrentItem());
-                item.getNBTItem().setBoolean("Drop",true);
+                item.getNBTTagCompound().setBoolean("Drop",true);
                 e.setCurrentItem(item.build());
-                /*NBTItem nbtItem = new NBTItem(e.getCurrentItem());
-                nbtItem.setBoolean("Drop",true);
-                e.setCurrentItem(nbtItem.getItem());*/
-                //p.updateInventory();
             }
         }
-
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -229,9 +257,9 @@ public class PortalListeners implements Listener {
         PortalGun portalGun;
         if ((portalGun = PortalUtils.getInstance().getPortalGun(e.getPlayer(),e.getItemDrop().getItemStack()))!=null) {
             ItemCreator itemDrop = new ItemCreator(e.getItemDrop().getItemStack());
-            if (itemDrop.getNBTItem().hasKey("Drop")){
-                itemDrop.getNBTItem().removeKey("Drop");
-                e.getItemDrop().setItemStack(itemDrop.getNBTItem().getItem());
+            if (itemDrop.getNBTTagCompound().hasKey("Drop")){
+                itemDrop.getNBTTagCompound().removeKey("Drop");
+                e.getItemDrop().setItemStack(itemDrop.getNBTTagCompound().getItem());
                 return;
             }
             e.getItemDrop().remove();
@@ -245,8 +273,81 @@ public class PortalListeners implements Listener {
         }
     }
 
+    /*@EventHandler
+    public void onInvUpdate(InventoryInteractEvent e){
+        if (e.getInventory() instanceof PlayerInventory){
+            PlayerInventory pi = (PlayerInventory)e.getInventory();
+            Player p = (Player) pi.getHolder();
+            PortalGun pg = null;
+            if ((pg=PortalUtils.getInstance().getPortalGun(p,p.getInventory().getItemInMainHand()))==null){
+                pg=PortalUtils.getInstance().getPortalGun(p,p.getInventory().getItemInOffHand());
+            }
+            if (pg==null){
+                PortalGunManager.getInstance().removeHolding(p,null);
+            }
+        }
+    }*/
+
+    @EventHandler
+    public void onSwap(PlayerSwapHandItemsEvent e) {
+        if (!PortalConfig.getInstance().canGrabEntity()){
+            return;
+        }
+        Player p = e.getPlayer();
+        PortalGun pg = null;
+        if ((pg=PortalUtils.getInstance().getPortalGun(p,e.getMainHandItem()))==null){
+            pg=PortalUtils.getInstance().getPortalGun(p,e.getOffHandItem());
+        }
+        if (pg!=null){
+            e.setCancelled(true);
+            if (PortalGunManager.getInstance().getHolding(p)!=null){
+                PortalGunDropEntityEvent event = new PortalGunDropEntityEvent(pg,p,PortalGunManager.getInstance().getHolding(p));
+                Bukkit.getPluginManager().callEvent(event);
+                if (!event.isCancelled()){
+                    PortalGunManager.getInstance().removeHolding(p,null);
+                }
+                return;
+            }
+            Location eyeLoc = p.getEyeLocation();
+            RayTraceResult t = p.getWorld().rayTraceEntities(eyeLoc, eyeLoc.getDirection(), 3, en -> (en instanceof LivingEntity) && !en.equals(p));
+            if (t!=null){
+                if (t.getHitEntity()!=null){
+                    PortalGunGrabEntityEvent event = new PortalGunGrabEntityEvent(pg,p,t.getHitEntity());
+                    Bukkit.getPluginManager().callEvent(event);
+                    if (!event.isCancelled()){
+                        PortalGunManager.getInstance().addHolding(p,t.getHitEntity());
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onEntityDamage(EntityDamageEvent e){
+        Entity en = e.getEntity();
+        if (e.getCause() == EntityDamageEvent.DamageCause.SUFFOCATION && PortalGunManager.getInstance().beingHeld(en)){
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onSlot(PlayerItemHeldEvent e){
+        PortalGunManager.getInstance().removeHolding(e.getPlayer(),null);
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent e){
+        PortalGunManager.getInstance().removeHolding(e.getEntity(),null);
+    }
+
+    @EventHandler
+    public void onTeleport(PlayerTeleportEvent e){
+        PortalGunManager.getInstance().removeHolding(e.getPlayer(),null);
+    }
+
     @EventHandler
     public void onWorldSave(WorldSaveEvent e){
         PortalGunManager.getInstance().savePortals();
+        HoldingFile.getInstance().saveHoldings();
     }
 }
