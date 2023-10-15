@@ -76,6 +76,12 @@ public class PortalGun {
                 getPortal1().hasPortal() && getPortal2().hasPortal();
     }
 
+    public void verifyPortals(){
+        if (getPortal1().verifyPortal()||getPortal2().verifyPortal()){
+            updateStatus();
+        }
+    }
+
     public void resetPortals(){
         portal1.resetPortal();
         portal2.resetPortal();
@@ -98,10 +104,18 @@ public class PortalGun {
         ItemCreator item = new ItemCreator(getPortalModel().getMaterialPortal())
                 .setDisplayName(getPortalModel().getName())
                 .setCustomModelData(colors==null?getPortalModel().getCustomModelDataNormal():(colors.isShoot1()?getPortalModel().getCustomModelDataShoot1():getPortalModel().getCustomModelDataShoot2()));
-        NBTItem nbt = item.getNBTTagCompound();
+        NBTItem nbt = new NBTItem(item.getItemStack());
         nbt.setInteger("PortalID",getId());
         nbt.setString("PortalFileUUID",PortalGunManager.getInstance().getPortalFileUUID().toString());
-        return item.build();
+        return nbt.getItem();
+    }
+
+    public ItemStack updatePortalItem(ItemStack itemStack){
+        return updatePortalItem(itemStack,null);
+    }
+
+    public ItemStack updatePortalItem(ItemStack itemStack, PortalColors colors){
+        return new ItemCreator(itemStack).setCustomModelData(colors==null?getPortalModel().getCustomModelDataNormal():(colors.isShoot1()?getPortalModel().getCustomModelDataShoot1():getPortalModel().getCustomModelDataShoot2())).getItemStack();
     }
 
     public void shootPortalBlue(Location location, Player p){
@@ -297,7 +311,7 @@ public class PortalGun {
                     if (event.isCancelled()){
                         return;
                     }
-                    p.getInventory().setItemInMainHand(this.getPortalItem(portalBlue?this.getPortalModel().getPortalColor1():this.getPortalModel().getPortalColor2()));
+                    p.getInventory().setItemInMainHand(this.updatePortalItem(p.getInventory().getItemInMainHand(),portalBlue?this.getPortalModel().getPortalColor1():this.getPortalModel().getPortalColor2()));
                     if (t.getHitBlockFace() == BlockFace.DOWN) {
                         portal.setPortal(up, down, t.getHitBlockFace(), direction);
                     } else {

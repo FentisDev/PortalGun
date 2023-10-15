@@ -24,6 +24,7 @@ public class PortalGunMain extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        instance = this;
         new DependenciesItemCreator(this);
         registryWorldGuardFlags();
     }

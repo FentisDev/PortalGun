@@ -107,9 +107,7 @@ public class PortalConfigGui {
 
                 @Override
                 public void onInventoryDrag(InventoryGUIDragEvent e) {
-                    if (e.guiInventory()){
-                        e.setCancelled(true);
-                    }
+                    e.setCancelled(true);
                 }
 
                 @Override

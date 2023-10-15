@@ -139,6 +139,7 @@ public class PortalGunManager {
                 }
                 getPortalGuns().forEach(portalGun -> {
                     if (portalGun.isOnline()){
+                        portalGun.verifyPortals();
                         if (!PortalConfig.getInstance().isInterdimensional()&&
                                 portalGun.getPortal1().getLoc1().getWorld()!=portalGun.getPortal2().getLoc1().getWorld()){
                             return;

@@ -115,6 +115,17 @@ public class Portal {
         return down!=null&&itemFrame.getUniqueId()==down.getUniqueId();
     }
 
+    public boolean verifyPortal(){
+        boolean status = false;
+        if (hasPortal()&&up!=null&&down!=null){
+            if ((up.isDead()||down.isDead())){
+                resetPortal();
+                status = true;
+            }
+        }
+        return status;
+    }
+
     public ItemFrame getUp() {
         return up;
     }

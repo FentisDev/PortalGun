@@ -2,7 +2,10 @@ package pl.by.fentisdev.portalgun.listeners;
 
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.bukkit.*;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -10,7 +13,9 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
-import org.bukkit.event.inventory.*;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -18,6 +23,7 @@ import org.bukkit.event.world.WorldSaveEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
+import pl.by.fentisdev.itemcreator.ItemCreator;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.events.PortalGunDropEntityEvent;
 import pl.by.fentisdev.portalgun.events.PortalGunGrabEntityEvent;
@@ -25,7 +31,6 @@ import pl.by.fentisdev.portalgun.portalgun.PortalGun;
 import pl.by.fentisdev.portalgun.portalgun.PortalGunManager;
 import pl.by.fentisdev.portalgun.portalgun.PortalModel;
 import pl.by.fentisdev.portalgun.portalgun.PortalSound;
-import pl.by.fentisdev.itemcreator.ItemCreator;
 import pl.by.fentisdev.portalgun.utils.HoldingFile;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
@@ -94,33 +99,34 @@ public class PortalListeners implements Listener {
                 return;
             }
             NBTItem nbt = new NBTItem(item);
-            if (nbt.hasKey("PortalID")){
-                return;
-            }
-            if (po.getCustomModelDataNormal()==item.getItemMeta().getCustomModelData()){
-                PortalGun pg = null;
-                switch (PortalConfig.getInstance().getPortalGunMode()) {
-                    case INFINITY:
-                        pg = PortalGunManager.getInstance().createPortalGun(po);
-                        break;
-                    case ONE_TYPE_PER_PLAYER:
-                        List<PortalGun> portalGuns = PortalGunManager.getInstance().getPlayerPortalGuns(p).stream().filter(portalGun -> portalGun.getPortalModel()==po).collect(Collectors.toList());
-                        pg=portalGuns.size()!=0?portalGuns.get(0):PortalGunManager.getInstance().createPortalGun(po);
-                        PortalGunManager.getInstance().addPlayerPortalGun(p,pg);
-                        break;
-                    case ONE_PORTAL_PER_PLAYER:
-                        if (PortalGunManager.getInstance().getPlayerPortalGuns(p).size()!=0){
-                            pg=PortalGunManager.getInstance().getPlayerPortalGuns(p).get(0);
-                            pg.setPortalModel(po);
-                        }else{
-                            pg=PortalGunManager.getInstance().createPortalGun(po);
+
+            if (!nbt.hasKey("PortalFileUUID")||(nbt.hasKey("PortalFileUUID")&&
+                    !nbt.getString("PortalFileUUID").equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString()))){
+                if (po.getCustomModelDataNormal()==item.getItemMeta().getCustomModelData()){
+                    PortalGun pg = null;
+                    switch (PortalConfig.getInstance().getPortalGunMode()) {
+                        case INFINITY:
+                            pg = PortalGunManager.getInstance().createPortalGun(po);
+                            break;
+                        case ONE_TYPE_PER_PLAYER:
+                            List<PortalGun> portalGuns = PortalGunManager.getInstance().getPlayerPortalGuns(p).stream().filter(portalGun -> portalGun.getPortalModel()==po).collect(Collectors.toList());
+                            pg=portalGuns.size()!=0?portalGuns.get(0):PortalGunManager.getInstance().createPortalGun(po);
                             PortalGunManager.getInstance().addPlayerPortalGun(p,pg);
-                        }
-                        break;
-                }
-                if (pg!=null){
-                    p.getInventory().setItemInMainHand(pg.getPortalItem());
-                    PortalSound.PORTAL_GUN_PICKUP.playSound(p.getLocation(),1,1);
+                            break;
+                        case ONE_PORTAL_PER_PLAYER:
+                            if (PortalGunManager.getInstance().getPlayerPortalGuns(p).size()!=0){
+                                pg=PortalGunManager.getInstance().getPlayerPortalGuns(p).get(0);
+                                pg.setPortalModel(po);
+                            }else{
+                                pg=PortalGunManager.getInstance().createPortalGun(po);
+                                PortalGunManager.getInstance().addPlayerPortalGun(p,pg);
+                            }
+                            break;
+                    }
+                    if (pg!=null){
+                        p.getInventory().setItemInMainHand(pg.getPortalItem());
+                        PortalSound.PORTAL_GUN_PICKUP.playSound(p.getLocation(),1,1);
+                    }
                 }
             }
         }
@@ -179,6 +185,11 @@ public class PortalListeners implements Listener {
                         e.getAction() == Action.LEFT_CLICK_AIR) &&
                 (portalGun=PortalUtils.getInstance().getPortalGun(e.getPlayer(),p.getInventory().getItemInMainHand()))!=null){
             e.setCancelled(true);
+            NBTItem nbt = new NBTItem(e.getPlayer().getInventory().getItemInMainHand());
+            if (nbt.hasKey("PortalFileUUID")&&
+                    !nbt.getString("PortalFileUUID").equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString())){
+                return;
+            }
             if (e.getAction()==Action.RIGHT_CLICK_BLOCK||e.getAction()==Action.RIGHT_CLICK_AIR){
                 portalGun.shootPortalBlue(p.getEyeLocation(),p);
             }else{
@@ -238,16 +249,18 @@ public class PortalListeners implements Listener {
                 e.getAction() == InventoryAction.DROP_ONE_CURSOR){
             if (PortalUtils.getInstance().getPortalGun(p,e.getCursor())!=null) {
                 ItemCreator item = new ItemCreator(e.getCursor());
-                item.getNBTTagCompound().setBoolean("Drop",true);
-                p.setItemOnCursor(item.build());
+                NBTItem nbt = new NBTItem(item.getItemStack());
+                nbt.setBoolean("Drop",true);
+                p.setItemOnCursor(nbt.getItem());
                 Bukkit.getScheduler().runTaskLater(PortalGunMain.getInstance(),r->p.updateInventory(),1);
             }
         }
         if (e.getClick() == ClickType.DROP){
             if (PortalUtils.getInstance().getPortalGun(p,e.getCurrentItem())!=null) {
                 ItemCreator item = new ItemCreator(e.getCurrentItem());
-                item.getNBTTagCompound().setBoolean("Drop",true);
-                e.setCurrentItem(item.build());
+                NBTItem nbt = new NBTItem(item.getItemStack());
+                nbt.setBoolean("Drop",true);
+                e.setCurrentItem(nbt.getItem());
             }
         }
     }
@@ -257,16 +270,16 @@ public class PortalListeners implements Listener {
         PortalGun portalGun;
         if ((portalGun = PortalUtils.getInstance().getPortalGun(e.getPlayer(),e.getItemDrop().getItemStack()))!=null) {
             ItemCreator itemDrop = new ItemCreator(e.getItemDrop().getItemStack());
-            if (itemDrop.getNBTTagCompound().hasKey("Drop")){
-                itemDrop.getNBTTagCompound().removeKey("Drop");
-                e.getItemDrop().setItemStack(itemDrop.getNBTTagCompound().getItem());
+            NBTItem nbt = new NBTItem(itemDrop.getItemStack());
+            if (nbt.hasKey("Drop")){
+                nbt.removeKey("Drop");
+                e.getItemDrop().setItemStack(nbt.getItem());
                 return;
             }
             e.getItemDrop().remove();
             portalGun.resetPortals();
             cd.add(e.getPlayer().getUniqueId());
-            ItemStack item = portalGun.getPortalItem();
-            e.getPlayer().getInventory().setItemInMainHand(item);
+            e.getPlayer().getInventory().setItemInMainHand(portalGun.updatePortalItem(e.getItemDrop().getItemStack()));
             Bukkit.getScheduler().scheduleSyncDelayedTask(PortalGunMain.getInstance(), () -> {
                 cd.remove(e.getPlayer().getUniqueId());
             }, 3);
@@ -350,4 +363,5 @@ public class PortalListeners implements Listener {
         PortalGunManager.getInstance().savePortals();
         HoldingFile.getInstance().saveHoldings();
     }
+
 }

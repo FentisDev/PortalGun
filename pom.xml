@@ -6,7 +6,7 @@
 
     <groupId>pl.by.fentisdev</groupId>
     <artifactId>PortalGun</artifactId>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>1.0.8-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>PortalGun</name>
@@ -19,8 +19,8 @@
         <worldedit.version>7.0.0-SNAPSHOT</worldedit.version>
         <worldguard.version>7.0.5-SNAPSHOT</worldguard.version>
         <bstats.version>3.0.0</bstats.version>
-        <itemcreator.version>1.0.0-SNAPSHOT</itemcreator.version>
-        <inventorygui.version>1.0.0-SNAPSHOT</inventorygui.version>
+        <itemcreator.version>1.1.0-SNAPSHOT</itemcreator.version>
+        <inventorygui.version>1.1.0-SNAPSHOT</inventorygui.version>
         <lombok.version>1.18.22</lombok.version>
         <item-nbt-api.version>LATEST</item-nbt-api.version>
         <grief.version>16.18</grief.version>

@@ -17,7 +17,7 @@ public class RecipeCreator {
 
     public RecipeCreator(String name, ItemCreator results) {
         NamespacedKey key = new NamespacedKey(PortalGunMain.getInstance(), name);
-        recipe = new ShapedRecipe(key, results.build());
+        recipe = new ShapedRecipe(key, results.getItemStack());
     }
 
     public RecipeCreator addShape(String... shape){

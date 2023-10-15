@@ -144,7 +144,8 @@ public class PortalUtils {
         if (item!=null&&item.hasItemMeta()&&item.getItemMeta().hasCustomModelData()){
             NBTItem nbt = new NBTItem(item);
             if (nbt.hasKey("PortalID")){
-                if (nbt.hasKey("PortalFileUUID")&&!nbt.getString("PortalFileUUID").equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString())){
+                if (nbt.hasKey("PortalFileUUID")&&
+                        !nbt.getString("PortalFileUUID").equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString())){
                     portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType()));
                     nbt.setInteger("PortalID",portalGun.getId());
                     nbt.setString("PortalFileUUID",PortalGunManager.getInstance().getPortalFileUUID().toString());
