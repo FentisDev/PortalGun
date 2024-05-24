@@ -42,7 +42,7 @@ public class RecipeCreator {
     }
 
     private String getVersion() {
-        return Bukkit.getServer().getClass().getPackage().getName().substring(23);
+        return Bukkit.getServer().getClass().getPackage().getName();
     }
 
 }
