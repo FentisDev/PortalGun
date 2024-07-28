@@ -1,7 +1,10 @@
 package pl.by.fentisdev.portalgun.utils;
 
 import com.google.gson.JsonObject;
-import de.tr7zw.changeme.nbtapi.NBTItem;
+import de.tr7zw.nbtapi.NBTItem;
+import de.tr7zw.nbtapi.plugin.NBTAPI;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,37 +17,41 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapView;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import pl.by.fentisdev.itemcreator.ItemCreator;
+import pl.by.fentisdev.itemcreator.persistence.PersistentDataContainerCreator;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.portalgun.*;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 
 public class PortalUtils {
 
+    @Getter
     private static PortalUtils instance = new PortalUtils();
 
-    public static PortalUtils getInstance() {
-        return instance;
-    }
+    private final ItemStack blueUpMap;
+    private final ItemStack blueDownMap;
+    private final ItemStack orangeUpMap;
+    private final ItemStack orangeDownMap;
+    private final ItemStack aquaUpMap;
+    private final ItemStack aquaDownMap;
+    private final ItemStack redUpMap;
+    private final ItemStack redDownMap;
+    private final ItemStack yellowUpMap;
+    private final ItemStack yellowDownMap;
+    private final ItemStack purpleUpMap;
+    private final ItemStack purpleDownMap;
 
-    private ItemStack blueUpMap;
-    private ItemStack blueDownMap;
-    private ItemStack orangeUpMap;
-    private ItemStack orangeDownMap;
-    private ItemStack aquaUpMap;
-    private ItemStack aquaDownMap;
-    private ItemStack redUpMap;
-    private ItemStack redDownMap;
-    private ItemStack yellowUpMap;
-    private ItemStack yellowDownMap;
-    private ItemStack purpleUpMap;
-    private ItemStack purpleDownMap;
-
+    @Getter
     private boolean glowItemFrame = false;
+    @Getter
     private boolean invisibleItemFrame = false;
+
+    @Getter @Setter
+    public boolean nbtApi = false;
 
     public PortalUtils() {
         blueUpMap = createPortalMapItem(PortalSide.UP,PortalColors.BLUE);
@@ -68,14 +75,6 @@ public class PortalUtils {
             ItemFrame.class.getMethod("isVisible");
             invisibleItemFrame = true;
         }catch (NoSuchMethodException e){}
-    }
-
-    public boolean isGlowItemFrame() {
-        return glowItemFrame;
-    }
-
-    public boolean isInvisibleItemFrame() {
-        return invisibleItemFrame;
     }
 
     public ItemStack getPortalMapItem(PortalSide side, PortalColors color){
@@ -104,8 +103,6 @@ public class PortalUtils {
     }
 
     private ItemStack createPortalMapItem(PortalSide side, PortalColors color){
-        ItemStack item = new ItemStack(Material.FILLED_MAP);
-        MapMeta mm = (MapMeta)item.getItemMeta();
         int mapid = -1;
         MapView mapView;
         if ((mapid=PortalGunMain.getInstance().getConfig().getInt("PortalMapID."+color.toString().toLowerCase()+"."+side.toString().toLowerCase()))==-1){
@@ -121,13 +118,30 @@ public class PortalUtils {
         mapView.getRenderers().clear();
         mapView.addRenderer(new PortalRender(side, color));
         mapView.setLocked(true);
-        mm.setMapView(mapView);
-        mm.setLore(Arrays.asList("Portal"));
-        item.setItemMeta(mm);
-        return item;
+        return new ItemCreator(Material.FILLED_MAP).getMapMetaCreator().setMapView(mapView).setLore("Portal").getItemStack();
     }
 
     public PortalGun getPortalGun(ItemStack item) {
+        PortalGun portalGun = null;
+        if (nbtApi){
+            portalGun = getPortalGunByNBT(item);
+            if (portalGun!=null){
+                return portalGun;
+            }
+        }
+        if (item != null && item.hasItemMeta() && item.getItemMeta().hasCustomModelData()) {
+            PersistentDataContainerCreator pdc = new ItemCreator(item).getPersistentDataContainer();
+            if (pdc.has(PortalGunNameSpacedKeys.PORTAL_ID_KEY, PersistentDataType.INTEGER)&&
+                    pdc.has(PortalGunNameSpacedKeys.PORTAL_FILE_ID_KEY, PersistentDataType.STRING)&&
+                    pdc.get(PortalGunNameSpacedKeys.PORTAL_FILE_ID_KEY,PersistentDataType.STRING).equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString())) {
+                portalGun = PortalGunManager.getInstance().getPortalGun(pdc.get(PortalGunNameSpacedKeys.PORTAL_ID_KEY,PersistentDataType.INTEGER));
+            }
+        }
+        return portalGun;
+    }
+
+    @Deprecated
+    public PortalGun getPortalGunByNBT(ItemStack item) {
         PortalGun portalGun = null;
         if (item != null && item.hasItemMeta() && item.getItemMeta().hasCustomModelData()) {
             NBTItem nbt = new NBTItem(item);
@@ -140,6 +154,55 @@ public class PortalUtils {
     }
 
     public PortalGun getPortalGun(Player p, ItemStack item){
+        PortalGun portalGun = null;
+        if (nbtApi){
+            portalGun = getPortalGunByNBT(p,item);
+            if (portalGun!=null){
+                return portalGun;
+            }
+        }
+        if (item!=null&&item.hasItemMeta()&&item.getItemMeta().hasCustomModelData()){
+            PersistentDataContainerCreator pdc = new ItemCreator(item).getPersistentDataContainer();
+            if (pdc.has(PortalGunNameSpacedKeys.PORTAL_ID_KEY,PersistentDataType.INTEGER)){
+                if (pdc.has(PortalGunNameSpacedKeys.PORTAL_FILE_ID_KEY,PersistentDataType.STRING)&&
+                        !pdc.get(PortalGunNameSpacedKeys.PORTAL_FILE_ID_KEY,PersistentDataType.STRING).equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString())){
+                    portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType()));
+                    pdc.set(PortalGunNameSpacedKeys.PORTAL_ID_KEY,PersistentDataType.INTEGER, portalGun.getId());
+                    pdc.set(PortalGunNameSpacedKeys.PORTAL_FILE_ID_KEY,PersistentDataType.STRING,PortalGunManager.getInstance().getPortalFileUUID().toString());
+                }
+                switch (PortalConfig.getInstance().getPortalGunMode()){
+                    case INFINITY:
+                        portalGun = PortalGunManager.getInstance().getPortalGun(pdc.get(PortalGunNameSpacedKeys.PORTAL_ID_KEY,PersistentDataType.INTEGER));
+                        break;
+                    case ONE_TYPE_PER_PLAYER:
+                        PortalGun pg = null;
+                        for (PortalGun playerPortalGun : PortalGunManager.getInstance().getPlayerPortalGuns(p)) {
+                            if (playerPortalGun.getPortalModel()==PortalModel.getPortalModelByMaterial(item.getType())){
+                                pg = playerPortalGun;
+                            }
+                        }
+                        if (pg==null){
+                            portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType()));
+                            PortalGunManager.getInstance().addPlayerPortalGun(p,portalGun);
+                        }else{
+                            portalGun = pg;
+                        }
+                        break;
+                    case ONE_PORTAL_PER_PLAYER:
+                        try {
+                            portalGun=PortalGunManager.getInstance().getPlayerPortalGuns(p).get(0);
+                            portalGun.setPortalModel(PortalModel.getPortalModelByMaterial(item.getType()));
+                        }catch (Exception e){
+                            PortalGunManager.getInstance().addPlayerPortalGun(p,portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType())));
+                        }
+                }
+            }
+        }
+        return portalGun;
+    }
+
+    @Deprecated
+    public PortalGun getPortalGunByNBT(Player p, ItemStack item){
         PortalGun portalGun = null;
         if (item!=null&&item.hasItemMeta()&&item.getItemMeta().hasCustomModelData()){
             NBTItem nbt = new NBTItem(item);
@@ -189,8 +252,9 @@ public class PortalUtils {
 
     public boolean inBlockList(Material material){
         if (material.isBlock() && material.isSolid()){
-            if (PortalGunMain.getInstance().getConfig().getBoolean("WhiteList")){
-                return PortalGunMain.getInstance().getConfig().getStringList("WhiteListBlocks").stream().anyMatch(l -> l.equalsIgnoreCase(material.toString()));
+            if (PortalConfig.getInstance().whiteList()){
+                return PortalConfig.getInstance().getWhiteListBlocks().stream().anyMatch(m -> m == material);
+                //return PortalGunMain.getInstance().getConfig().getStringList("WhiteListBlocks").stream().anyMatch(l -> l.equalsIgnoreCase(material.toString()));
             }
             return true;
         }

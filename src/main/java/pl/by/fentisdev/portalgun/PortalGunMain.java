@@ -1,13 +1,14 @@
 package pl.by.fentisdev.portalgun;
 
+import co.aikar.commands.BukkitCommandManager;
+import lombok.Getter;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import pl.by.fentisdev.itemcreator.DependenciesItemCreator;
-import pl.by.fentisdev.portalgun.cmd.PortalCMD;
+import pl.by.fentisdev.portalgun.cmd.PortalCommands;
 import pl.by.fentisdev.portalgun.listeners.GriefPreventionListeners;
 import pl.by.fentisdev.portalgun.listeners.PortalListeners;
 import pl.by.fentisdev.portalgun.listeners.WorldGuardListeners;
@@ -16,33 +17,38 @@ import pl.by.fentisdev.portalgun.portalgun.PortalGunManager;
 import pl.by.fentisdev.portalgun.portalgun.PortalModel;
 import pl.by.fentisdev.portalgun.utils.*;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class PortalGunMain extends JavaPlugin {
 
+    @Getter
     private static PortalGunMain instance;
+    private BukkitCommandManager commandManager;
 
     @Override
     public void onLoad() {
         instance = this;
-        new DependenciesItemCreator(this);
         registryWorldGuardFlags();
     }
 
     @Override
     public void onEnable() {
-        instance = this;
         HoldingFile.getInstance().readHoldings();
         Bukkit.getPluginManager().registerEvents(new PortalListeners(),this);
-        getCommand("portalgun").setExecutor(new PortalCMD());
+        //getCommand("portalgun").setExecutor(new PortalCMD());
+        registerCommands();
         PortalConfig.getInstance().createConfig();
         registryCraft();
 
+        registryNbtApi();
         registryWorldGuard();
         registryGriefPrevention();
         PortalGunManager.getInstance().registryPortals();
         PortalGunManager.getInstance().startPortalScheduler();
-        Metrics metrics = new Metrics(PortalGunMain.getInstance(),15397);
+        Metrics metrics = new Metrics(this,15397);
         updateChecker();
     }
 
@@ -59,10 +65,15 @@ public class PortalGunMain extends JavaPlugin {
             }
         }
     }
-
-    public static PortalGunMain getInstance() {
-        return instance;
+    public void registerCommands(){
+        commandManager = new BukkitCommandManager(this);
+        commandManager.getCommandCompletions().registerAsyncCompletion("portalmodels", c ->
+                Arrays.stream(PortalModel.values()).map(Objects::toString).collect(Collectors.toList()));
+        commandManager.getCommandCompletions().registerAsyncCompletion("blockwhitelist", c ->
+                PortalConfig.getInstance().getWhiteListBlocks().stream().map(Objects::toString).collect(Collectors.toList()));
+        commandManager.registerCommand(new PortalCommands());
     }
+
 
     public void registryWorldGuardFlags(){
         if ((Bukkit.getPluginManager().getPlugin("WorldGuard"))!=null){
@@ -70,38 +81,45 @@ public class PortalGunMain extends JavaPlugin {
         }
     }
 
-    public void registryWorldGuard(){
+    private void registryNbtApi(){
+        Plugin plugin;
+        if ((plugin=Bukkit.getPluginManager().getPlugin("NBTAPI"))!=null&&plugin.isEnabled()){
+            Bukkit.getConsoleSender().sendMessage("§6[PortalGun] §eNBT-API found!");
+            PortalUtils.getInstance().setNbtApi(true);
+        }else{
+            Bukkit.getConsoleSender().sendMessage("§6[PortalGun] §eNBT-API not found! It's ok! This is only necessary if this server has already run previous versions of PortalGun 2.0.0-SNAPSHOT");
+        }
+    }
+
+    private void registryWorldGuard(){
         Plugin plugin;
         if ((plugin=Bukkit.getPluginManager().getPlugin("WorldGuard"))!=null&&plugin.isEnabled()){
+            Bukkit.getConsoleSender().sendMessage("§6[PortalGun] §eWorldGuard found!");
             Bukkit.getPluginManager().registerEvents(new WorldGuardListeners(),this);
         }
     }
 
-    public void registryGriefPrevention(){
+    private void registryGriefPrevention(){
         Plugin plugin;
         if ((plugin=Bukkit.getPluginManager().getPlugin("GriefPrevention"))!=null&&plugin.isEnabled()){
+            Bukkit.getConsoleSender().sendMessage("§6[PortalGun] §eGriefPrevention found!");
             Bukkit.getPluginManager().registerEvents(new GriefPreventionListeners(),this);
         }
     }
 
-    public void registryCraft(){
+    private void registryCraft(){
         if (getConfig().getBoolean("PortalCraftable")){
-            if (getConfig().getBoolean("PortalGunCrafts."+ PortalModel.CHELL.toString().toLowerCase()+".Craft")){
-                registryPortalRecipe(PortalModel.CHELL);
-            }
-            if (getConfig().getBoolean("PortalGunCrafts."+ PortalModel.ATLAS.toString().toLowerCase()+".Craft")){
-                registryPortalRecipe(PortalModel.ATLAS);
-            }
-            if (getConfig().getBoolean("PortalGunCrafts."+ PortalModel.P_BODY.toString().toLowerCase()+".Craft")){
-                registryPortalRecipe(PortalModel.P_BODY);
-            }
-            if (getConfig().getBoolean("PortalGunCrafts."+ PortalModel.POTATOS.toString().toLowerCase()+".Craft")){
-                registryPortalRecipe(PortalModel.POTATOS);
+            Bukkit.getConsoleSender().sendMessage("§6[PortalGun] §eRegistering PortalGun's Crafts");
+            for (PortalModel portalModel : PortalModel.values()) {
+                if (getConfig().getBoolean("PortalGunCrafts."+ portalModel.toString().toLowerCase()+".Craft")){
+                    registryPortalRecipe(portalModel);
+                }
             }
         }
     }
 
-    public void registryPortalRecipe(PortalModel po){
+    private void registryPortalRecipe(PortalModel po){
+        Bukkit.getConsoleSender().sendMessage("§6[PortalGun] §7Adding recipe for §e"+po.getName().replace("§f",""));
         List<String> shape = getConfig().getStringList("PortalGunCrafts."+po.toString().toLowerCase()+".Shape");
         List<String> ingredients = getConfig().getStringList("PortalGunCrafts."+po.toString().toLowerCase()+".Ingredients");
         RecipeCreator rc = new RecipeCreator("portalgun_"+po.toString().toLowerCase(),po.createItem());
@@ -115,13 +133,13 @@ public class PortalGunMain extends JavaPlugin {
         rc.addRecipe();
     }
 
-    public void updateChecker(){
+    private void updateChecker(){
         new UpdateChecker(this, 96641).getVersion(version -> {
-            Bukkit.getConsoleSender().sendMessage("§eChecking for updates to [Portal Gun]...");
+            Bukkit.getConsoleSender().sendMessage("§6[PortalGun] §eChecking for updates...");
             if (this.getDescription().getVersion().equalsIgnoreCase(version)) {
-                Bukkit.getConsoleSender().sendMessage("§aThe plugin is already in the most updated version!");
+                Bukkit.getConsoleSender().sendMessage("§6[PortalGun] §aThe plugin is already in the most updated version!");
             } else {
-                Bukkit.getConsoleSender().sendMessage("§cA new version is available! You can download it at https://www.spigotmc.org/resources/portal-gun.96641/");
+                Bukkit.getConsoleSender().sendMessage("§6[PortalGun] §cIts current version is §e"+this.getDescription().getVersion()+" §cA new version is available! Download version §a"+version+"§c at §bhttps://www.spigotmc.org/resources/portal-gun.96641/");
             }
         });
     }

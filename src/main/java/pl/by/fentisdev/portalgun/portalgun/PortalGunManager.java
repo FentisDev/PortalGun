@@ -1,13 +1,13 @@
 package pl.by.fentisdev.portalgun.portalgun;
 
 import com.google.gson.*;
+import lombok.Getter;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import pl.by.fentisdev.portalgun.PortalGunMain;
@@ -17,29 +17,22 @@ import pl.by.fentisdev.portalgun.utils.PortalUtils;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class PortalGunManager {
 
+    @Getter
     private static PortalGunManager instance = new PortalGunManager();
 
-    public static PortalGunManager getInstance() {
-        return instance;
-    }
-
+    @Getter
     private UUID portalFileUUID = UUID.randomUUID();
     private int portalScheduler;
+    @Getter
     private List<PortalGun> portalGuns = new ArrayList<>();
+    @Getter
     private HashMap<Player,Entity> holding = new HashMap<>();
     private JsonObject portal_players = new JsonObject();
-
-    public UUID getPortalFileUUID() {
-        return portalFileUUID;
-    }
-
-    public List<PortalGun> getPortalGuns() {
-        return portalGuns;
-    }
 
     public PortalGun getPortalGun(int id){
         return getPortalGuns().stream().filter(p -> p.getId()==id).findAny().orElse(null);
@@ -134,7 +127,7 @@ public class PortalGunManager {
             List<Player> remove = new ArrayList<>();
             @Override
             public void run() {
-                if (Bukkit.getOnlinePlayers().size()==0||getPortalGuns().size()==0){
+                if (Bukkit.getOnlinePlayers().isEmpty() || getPortalGuns().isEmpty()){
                     return;
                 }
                 getPortalGuns().forEach(portalGun -> {
@@ -146,12 +139,14 @@ public class PortalGunManager {
                         }
                         for (Entity entity : portalGun.getPortal1().getEntityNearby()) {
                             EntityTeleportInPortalEvent event = new EntityTeleportInPortalEvent(portalGun,portalGun.getPortal1(),portalGun.getPortal2(),entity);
+                            Bukkit.getPluginManager().callEvent(event);
                             if (!event.isCancelled()){
                                 PortalUtils.getInstance().portalTeleport(portalGun,entity,portalGun.getPortal2());
                             }
                         }
                         for (Entity entity : portalGun.getPortal2().getEntityNearby()) {
                             EntityTeleportInPortalEvent event = new EntityTeleportInPortalEvent(portalGun,portalGun.getPortal2(),portalGun.getPortal1(),entity);
+                            Bukkit.getPluginManager().callEvent(event);
                             if (!event.isCancelled()){
                                 PortalUtils.getInstance().portalTeleport(portalGun,entity,portalGun.getPortal1());
                             }
@@ -192,22 +187,10 @@ public class PortalGunManager {
                         double y = direction.getY() * a;
                         double z = direction.getZ() * a;
                         nloc.add(x,y-(h.getValue().getBoundingBox().getHeight()/2),z);
+                        nloc.setYaw(p.getLocation().getYaw());
+                        nloc.setPitch(p.getLocation().getPitch());
                     }
-                    if (nloc!=null){
-                        /*BoundingBox box = h.getValue().getBoundingBox();
-                        if (!nloc.getBlock().getRelative(BlockFace.NORTH).isPassable() ||
-                                !nloc.getBlock().getRelative(BlockFace.SOUTH).isPassable()){
-                            nloc.setZ(((int)nloc.getZ())+box.getWidthZ());
-                        }
-                        if (!nloc.getBlock().getRelative(BlockFace.WEST).isPassable() ||
-                                !nloc.getBlock().getRelative(BlockFace.EAST).isPassable()){
-                            nloc.setX(((int)nloc.getX())-box.getWidthZ());
-                        }
-                        if (!nloc.getBlock().getRelative(BlockFace.UP).isPassable()){
-                            nloc.setY(((int)nloc.getY())-box.getHeight());
-                        }*/
-                        h.getValue().teleport(nloc);
-                    }
+                    h.getValue().teleport(nloc);
                 });
                 remove.forEach(p->removeHolding(p,null));
                 remove.clear();
@@ -292,10 +275,6 @@ public class PortalGunManager {
         }
     }
 
-    public HashMap<Player, Entity> getHolding() {
-        return holding;
-    }
-
     public Entity getHolding(Player p){
         return holding.get(p);
     }
@@ -308,6 +287,16 @@ public class PortalGunManager {
         e.setGravity(false);
         this.holding.put(p,e);
         PortalSound.PORTAL_GRAB_ENTITY.playSound(p.getLocation(),1,1.5f);
+    }
+
+    public void removeHolding(LivingEntity en){
+        AtomicReference<Player> p = new AtomicReference<>();
+        holding.forEach((player, entity) -> {
+            if (en.equals(entity)){
+                p.set(player);
+            }
+        });
+        removeHolding(p.get(),en);
     }
 
     public void removeHolding(Player p, Entity e){

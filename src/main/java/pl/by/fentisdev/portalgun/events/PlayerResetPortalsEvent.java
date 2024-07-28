@@ -1,14 +1,13 @@
 package pl.by.fentisdev.portalgun.events;
 
 import lombok.Getter;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import pl.by.fentisdev.portalgun.portalgun.PortalGun;
 
-public class PortalGunDropEntityEvent extends Event implements Cancellable {
+public class PlayerResetPortalsEvent extends Event implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
 
@@ -16,14 +15,11 @@ public class PortalGunDropEntityEvent extends Event implements Cancellable {
     private PortalGun portalGun;
     @Getter
     private Player player;
-    @Getter
-    private Entity entity;
     private boolean cancelled = false;
 
-    public PortalGunDropEntityEvent(PortalGun portalGun, Player player, Entity entity) {
+    public PlayerResetPortalsEvent(PortalGun portalGun, Player player) {
         this.portalGun = portalGun;
         this.player = player;
-        this.entity = entity;
     }
 
     @Override

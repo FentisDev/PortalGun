@@ -18,11 +18,8 @@ public class HoldingFile {
     @Getter
     private static HoldingFile instance = new HoldingFile();
 
+    @Getter
     private List<UUID> holdingsList = new ArrayList<>();
-
-    public List<UUID> getHoldingsList() {
-        return holdingsList;
-    }
 
     public void removeHolding(List<UUID> uuidList){
         uuidList.forEach(this::removeHolding);

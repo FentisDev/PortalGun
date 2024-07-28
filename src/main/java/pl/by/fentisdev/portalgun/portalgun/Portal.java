@@ -1,6 +1,7 @@
 package pl.by.fentisdev.portalgun.portalgun;
 
 import com.google.gson.JsonObject;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -15,12 +16,18 @@ import java.util.List;
 
 public class Portal {
 
+    @Getter
     private Location loc1,loc2;
     private int chunk1x,chunk1z,chunk2x,chunk2z;
+    @Getter
     private PortalColors color;
+    @Getter
     private BlockFace face;
+    @Getter
     private ItemFrame up;
+    @Getter
     private ItemFrame down;
+    @Getter
     private BlockFace direction;
 
     public Portal(PortalColors color){
@@ -45,49 +52,38 @@ public class Portal {
         return loc1!=null;
     }
 
-    public Location getLoc1() {
-        return loc1;
-    }
-
-    public Location getLoc2() {
-        return loc2;
-    }
-
     public boolean inChunk(Chunk chunk){
         return (chunk.getX()==chunk1x&&chunk.getZ()==chunk1z) || (chunk.getX()==chunk2x&&chunk.getZ()==chunk2z);
     }
 
     public Location getLocTeleport(Entity entity){
         BoundingBox box = entity.getBoundingBox();
-
-        if (face== BlockFace.DOWN){
-            return loc1.getBlock().getLocation().add(0.5,(-box.getHeight())+0.7,0.5);
-        }else if (face== BlockFace.UP){
-            return loc1.getBlock().getLocation().add(0.5,0.5,0.5);
-        }else{
-            if (face == BlockFace.EAST){
+        switch (face){
+            case DOWN:
+                return loc1.getBlock().getLocation().add(0.5,(-box.getHeight())+0.7,0.5);
+            case UP:
+                return loc1.getBlock().getLocation().add(0.5,0.5,0.5);
+            case EAST:
                 return loc1.getBlock().getLocation().add(box.getWidthX(),0,0.5);
-            }
-            if (face == BlockFace.WEST){
+            case WEST:
                 return loc1.getBlock().getLocation().add(1+(-box.getWidthX()),0,0.5);
-            }
-            if (face == BlockFace.SOUTH){
+            case SOUTH:
                 return loc1.getBlock().getLocation().add(0.5,0,box.getWidthZ());
-            }
-            if (face == BlockFace.NORTH){
+            case NORTH:
                 return loc1.getBlock().getLocation().add(0.5,0,1+(-(box.getWidthZ())));
-            }
-            return loc1.getBlock().getLocation().add(0.5,0.0,0.5);
+            default:
+                return loc1.getBlock().getLocation().add(0.5,0.0,0.5);
         }
     }
 
     public Location getLocTeleport(){
-        if (face== BlockFace.DOWN){
-            return loc1.getBlock().getLocation().add(0.5,-1,0.5);
-        }else if (face== BlockFace.UP){
-            return loc1.getBlock().getLocation().add(0.5,0.5,0.5);
-        }else{
-            return loc1.getBlock().getLocation().add(0.5,0.0,0.5);
+        switch (face){
+            case DOWN:
+                return loc1.getBlock().getLocation().add(0.5,-1,0.5);
+            case UP:
+                return loc1.getBlock().getLocation().add(0.5,0.5,0.5);
+            default:
+                return loc1.getBlock().getLocation().add(0.5,0.0,0.5);
         }
     }
 
@@ -116,22 +112,11 @@ public class Portal {
     }
 
     public boolean verifyPortal(){
-        boolean status = false;
-        if (hasPortal()&&up!=null&&down!=null){
-            if ((up.isDead()||down.isDead())){
-                resetPortal();
-                status = true;
-            }
+        if (hasPortal()&&up!=null&&down!=null&&(up.isDead()||down.isDead())){
+            resetPortal();
+            return true;
         }
-        return status;
-    }
-
-    public ItemFrame getUp() {
-        return up;
-    }
-
-    public ItemFrame getDown() {
-        return down;
+        return false;
     }
 
     public List<Entity> getEntityNearby(){
@@ -141,14 +126,17 @@ public class Portal {
         double z = face== BlockFace.SOUTH||face== BlockFace.NORTH?0.034:0.1;
         if (up!=null){
             for (Entity nearbyEntity : up.getNearbyEntities(x, y, z)) {
-                if ((nearbyEntity instanceof LivingEntity || nearbyEntity instanceof Item) && !PortalGunManager.getInstance().beingHeld(nearbyEntity)){
+                if ((nearbyEntity instanceof LivingEntity || nearbyEntity instanceof Item) &&
+                        !PortalGunManager.getInstance().beingHeld(nearbyEntity)){
                     en.add(nearbyEntity);
                 }
             }
         }
         if (down!=null){
             for (Entity nearbyEntity : down.getNearbyEntities(x, y, z)) {
-                if ((nearbyEntity instanceof LivingEntity || nearbyEntity instanceof Item) && !en.contains(nearbyEntity) && !PortalGunManager.getInstance().beingHeld(nearbyEntity)){
+                if ((nearbyEntity instanceof LivingEntity || nearbyEntity instanceof Item) &&
+                        !en.contains(nearbyEntity) &&
+                        !PortalGunManager.getInstance().beingHeld(nearbyEntity)){
                     en.add(nearbyEntity);
                 }
             }
@@ -179,26 +167,18 @@ public class Portal {
     public void renderPortal(){
         clearPortal();
         color.getTeleportSound().playSound(loc1,1,1);
-        Rotation rotation = face== BlockFace.DOWN?(direction==BlockFace.SOUTH? Rotation.CLOCKWISE:direction==BlockFace.WEST? Rotation.CLOCKWISE_45:direction==BlockFace.EAST? Rotation.CLOCKWISE_135: Rotation.NONE):
-                face== BlockFace.UP?(direction==BlockFace.SOUTH? Rotation.CLOCKWISE:direction==BlockFace.WEST? Rotation.CLOCKWISE_135:direction==BlockFace.EAST? Rotation.CLOCKWISE_45: Rotation.NONE): Rotation.NONE;
+        Rotation rotation = face==BlockFace.DOWN?direction==BlockFace.SOUTH?Rotation.CLOCKWISE:direction==BlockFace.WEST?Rotation.CLOCKWISE_45:direction==BlockFace.EAST?Rotation.CLOCKWISE_135:Rotation.NONE:
+                face==BlockFace.UP?direction==BlockFace.SOUTH?Rotation.CLOCKWISE:direction==BlockFace.WEST?Rotation.CLOCKWISE_135:direction==BlockFace.EAST?Rotation.CLOCKWISE_45:Rotation.NONE:Rotation.NONE;
         try {
-            Class<? extends ItemFrame> c;
-            Class<? extends ItemFrame> c2;
+            Class<? extends ItemFrame> c = PortalUtils.getInstance().isGlowItemFrame()? GlowItemFrame.class:ItemFrame.class;
 
-            if (PortalUtils.getInstance().isGlowItemFrame()){
-                c=GlowItemFrame.class;
-                c2=GlowItemFrame.class;
-            }else{
-                c=ItemFrame.class;
-                c2=ItemFrame.class;
-            }
             down = loc1.getWorld().spawn(loc1, c);
             down.setFacingDirection(face);
             down.setRotation(rotation);
             down.setItem(PortalUtils.getInstance().getPortalMapItem(PortalSide.DOWN,color));
             down.setInvulnerable(true);
 
-            up = loc2.getWorld().spawn(loc2, c2);
+            up = loc2.getWorld().spawn(loc2, c);
             up.setFacingDirection(face);
             up.setRotation(rotation);
             up.setItem(PortalUtils.getInstance().getPortalMapItem(PortalSide.UP,color));

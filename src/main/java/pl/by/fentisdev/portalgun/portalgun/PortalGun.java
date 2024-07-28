@@ -1,6 +1,6 @@
 package pl.by.fentisdev.portalgun.portalgun;
 
-import de.tr7zw.changeme.nbtapi.NBTItem;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -10,21 +10,27 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Hanging;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.events.PlayerPortalShotEvent;
 import pl.by.fentisdev.itemcreator.ItemCreator;
+import pl.by.fentisdev.portalgun.utils.PortalGunNameSpacedKeys;
 import pl.by.fentisdev.portalgun.utils.PortalUtils;
 
 public class PortalGun {
 
+    @Getter
     private int id;
+    @Getter
     private PortalModel portalModel;
+    @Getter
     private Portal portal1, portal2;
-    private boolean cooldown = false;
-    private boolean online = false;
+    @Getter
+    private boolean isOnline = false;
 
     public PortalGun(int id, PortalModel portalModel){
         this.id = id;
@@ -41,22 +47,10 @@ public class PortalGun {
         updateStatus();
     }
 
-    public PortalModel getPortalModel() {
-        return portalModel;
-    }
-
     public void setPortalModel(PortalModel portalModel) {
         this.portalModel = portalModel;
         portal1.setColor(portalModel.getPortalColor1());
         portal2.setColor(portalModel.getPortalColor2());
-    }
-
-    public Portal getPortal1() {
-        return portal1;
-    }
-
-    public Portal getPortal2() {
-        return portal2;
     }
 
     public Portal getPortal(ItemFrame itemFrame){
@@ -64,11 +58,7 @@ public class PortalGun {
     }
 
     public void updateStatus(){
-        online = isActivated();
-    }
-
-    public boolean isOnline() {
-        return online;
+        isOnline = isActivated();
     }
 
     public boolean isActivated(){
@@ -92,10 +82,6 @@ public class PortalGun {
         return portal1!=null&&portal2!=null&&portal1.hasPortal()&&portal2.hasPortal();
     }
 
-    public int getId() {
-        return id;
-    }
-
     public ItemStack getPortalItem(){
         return getPortalItem(null);
     }
@@ -104,10 +90,11 @@ public class PortalGun {
         ItemCreator item = new ItemCreator(getPortalModel().getMaterialPortal())
                 .setDisplayName(getPortalModel().getName())
                 .setCustomModelData(colors==null?getPortalModel().getCustomModelDataNormal():(colors.isShoot1()?getPortalModel().getCustomModelDataShoot1():getPortalModel().getCustomModelDataShoot2()));
-        NBTItem nbt = new NBTItem(item.getItemStack());
-        nbt.setInteger("PortalID",getId());
-        nbt.setString("PortalFileUUID",PortalGunManager.getInstance().getPortalFileUUID().toString());
-        return nbt.getItem();
+
+        item.getPersistentDataContainer().set(PortalGunNameSpacedKeys.PORTAL_ID_KEY, PersistentDataType.INTEGER,getId());
+        item.getPersistentDataContainer().set(PortalGunNameSpacedKeys.PORTAL_FILE_ID_KEY, PersistentDataType.STRING,PortalGunManager.getInstance().getPortalFileUUID().toString());
+
+        return item.getItemStack();
     }
 
     public ItemStack updatePortalItem(ItemStack itemStack){
@@ -118,207 +105,172 @@ public class PortalGun {
         return new ItemCreator(itemStack).setCustomModelData(colors==null?getPortalModel().getCustomModelDataNormal():(colors.isShoot1()?getPortalModel().getCustomModelDataShoot1():getPortalModel().getCustomModelDataShoot2())).getItemStack();
     }
 
-    public void shootPortalBlue(Location location, Player p){
-        shootPortal(location,true,p);
+    public void shootPortal(Player player, PortalClick portalClick, EquipmentSlot hand){
+        shootPortal(player.getEyeLocation(),portalClick,player,hand);
     }
 
-    public void shootPortalOrange(Location location, Player p){
-        shootPortal(location,false,p);
-    }
-
-    private void shootPortal(Location location, boolean portalBlue, Player p){
-        if (cooldown){
-            return;
-        }
-        Bukkit.getScheduler().scheduleSyncDelayedTask(PortalGunMain.getInstance(), new Runnable() {
-            @Override
-            public void run() {
-                cooldown = false;
-            }
-        },5);
+    private void shootPortal(Location location, PortalClick portalClick , Player p, EquipmentSlot hand){
         RayTraceResult t = location.getWorld().rayTraceBlocks(location, location.getDirection(), PortalGunMain.getInstance().getConfig().getInt("PortalShootRange"));
         if (t==null){
             return;
         }
         Block b = t.getHitBlock();
         if (b!=null) {
+            if (!canPutAPortal(b)){
+                return;
+            }
             Vector v = t.getHitPosition();
             BlockFace face = t.getHitBlockFace();
+            BlockFace compareFace = null;
             Block nb = b.getRelative(face);
             Location up = null, down = null;
 
             BlockFace direction = PortalUtils.getInstance().getCardinalDirection(location);
 
-            if (t.getHitBlockFace() == BlockFace.NORTH ||
-                    t.getHitBlockFace() == BlockFace.SOUTH ||
-                    t.getHitBlockFace() == BlockFace.EAST ||
-                    t.getHitBlockFace() == BlockFace.WEST) {
-                double rest = Math.abs(v.getY() - ((int) v.getY()));
-                if (rest >= 0.5) {
-                    if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.UP)) &&
-                            PortalUtils.getInstance().inBlockList(b) &&
-                            nb.getRelative(BlockFace.UP).getType() == Material.AIR) {
-                        up = nb.getRelative(BlockFace.UP).getLocation();
+            if (face.isCartesian() && face!=BlockFace.UP && face!=BlockFace.DOWN){
+                if (Math.abs(v.getY() - ((int) v.getY())) >= 0.5){
+                    if (canPutAPortal(b.getRelative(compareFace=BlockFace.UP)) &&
+                            nb.getRelative(compareFace).getType() == Material.AIR){
+                        up = nb.getRelative(compareFace).getLocation();
                         down = nb.getLocation();
-                    } else if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.DOWN)) &&
-                            PortalUtils.getInstance().inBlockList(b) &&
-                            nb.getRelative(BlockFace.DOWN).getType() == Material.AIR) {
-                        down = nb.getRelative(BlockFace.DOWN).getLocation();
+                    }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.DOWN)) &&
+                            nb.getRelative(compareFace).getType() == Material.AIR){
+                        down = nb.getRelative(compareFace).getLocation();
                         up = nb.getLocation();
                     }
-                } else {
-                    if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.DOWN)) &&
-                            PortalUtils.getInstance().inBlockList(b) &&
-                            nb.getRelative(BlockFace.DOWN).getType() == Material.AIR) {
-                        down = nb.getRelative(BlockFace.DOWN).getLocation();
+                }else{
+                    if (canPutAPortal(b.getRelative(compareFace=BlockFace.DOWN)) &&
+                            nb.getRelative(compareFace).getType() == Material.AIR){
+                        down = nb.getRelative(compareFace).getLocation();
                         up = nb.getLocation();
-                    } else if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.UP)) &&
-                            PortalUtils.getInstance().inBlockList(b) &&
-                            nb.getRelative(BlockFace.UP).getType() == Material.AIR) {
-                        up = nb.getRelative(BlockFace.UP).getLocation();
+                    } else if (canPutAPortal(b.getRelative(compareFace=BlockFace.UP)) &&
+                            nb.getRelative(compareFace).getType() == Material.AIR) {
+                        up = nb.getRelative(compareFace).getLocation();
                         down = nb.getLocation();
                     }
                 }
-
-            } else if (t.getHitBlockFace() == BlockFace.UP || t.getHitBlockFace() == BlockFace.DOWN) {
-                double rest;
-                if (direction == BlockFace.NORTH) {
-                    rest = Math.abs(v.getZ() - ((int) v.getZ()));
-                    if (rest > 0.5) {//up
-                        if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.SOUTH)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.SOUTH).getType() == Material.AIR) {
-                            up = nb.getLocation();
-                            down = nb.getRelative(BlockFace.SOUTH).getLocation();
-                        } else if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.NORTH)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.NORTH).getType() == Material.AIR) {
-                            down = nb.getLocation();
-                            up = nb.getRelative(BlockFace.NORTH).getLocation();
+            } else {
+                switch (direction){
+                    case NORTH:
+                        if (Math.abs(v.getZ() - ((int)v.getZ())) > 0.5){ //UP
+                            if (canPutAPortal(b.getRelative(compareFace=BlockFace.SOUTH)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                up = nb.getLocation();
+                                down = nb.getRelative(compareFace).getLocation();
+                            } else if (canPutAPortal(b.getRelative(compareFace = BlockFace.NORTH)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR) {
+                                down = nb.getLocation();
+                                up = nb.getRelative(compareFace).getLocation();
+                            }
+                        } else { //DOWN
+                            if (canPutAPortal(b.getRelative(compareFace=BlockFace.NORTH)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                down = nb.getLocation();
+                                up = nb.getRelative(compareFace).getLocation();
+                            }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.SOUTH)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                up = nb.getLocation();
+                                down = nb.getRelative(compareFace).getLocation();
+                            }
                         }
-                    } else {//down
-                        if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.NORTH)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.NORTH).getType() == Material.AIR) {
-                            down = nb.getLocation();
-                            up = nb.getRelative(BlockFace.NORTH).getLocation();
-                        } else if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.SOUTH)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.SOUTH).getType() == Material.AIR) {
-                            up = nb.getLocation();
-                            down = nb.getRelative(BlockFace.SOUTH).getLocation();
+                        break;
+                    case SOUTH:
+                        if (Math.abs(v.getZ() - ((int) v.getZ())) < 0.5){//UP
+                            if (canPutAPortal(b.getRelative(compareFace=BlockFace.NORTH)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                up = nb.getLocation();
+                                down = nb.getRelative(compareFace).getLocation();
+                            }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.SOUTH)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                down = nb.getLocation();
+                                up = nb.getRelative(compareFace).getLocation();
+                            }
+                        }else{//DOWN
+                            if (canPutAPortal(b.getRelative(compareFace=BlockFace.SOUTH)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                down = nb.getLocation();
+                                up = nb.getRelative(compareFace).getLocation();
+                            }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.NORTH)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                up = nb.getLocation();
+                                down = nb.getRelative(compareFace).getLocation();
+                            }
                         }
-                    }
-                } else if (direction == BlockFace.SOUTH) {
-                    rest = Math.abs(v.getZ() - ((int) v.getZ()));
-                    if (rest < 0.5) {//up
-                        if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.NORTH)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.NORTH).getType() == Material.AIR) {
-                            up = nb.getLocation();
-                            down = nb.getRelative(BlockFace.NORTH).getLocation();
-                        } else if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.SOUTH)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.SOUTH).getType() == Material.AIR) {
-                            down = nb.getLocation();
-                            up = nb.getRelative(BlockFace.SOUTH).getLocation();
+                        break;
+                    case EAST:
+                        if (Math.abs(v.getX() - ((int) v.getX())) > 0.5){//UP
+                            if (canPutAPortal(b.getRelative(compareFace=BlockFace.WEST)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                up = nb.getLocation();
+                                down = nb.getRelative(compareFace).getLocation();
+                            }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.EAST)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                down = nb.getLocation();
+                                up = nb.getRelative(compareFace).getLocation();
+                            }
+                        }else{//DOWN
+                            if (canPutAPortal(b.getRelative(compareFace=BlockFace.EAST)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                down = nb.getLocation();
+                                up = nb.getRelative(compareFace).getLocation();
+                            }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.WEST)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                up = nb.getLocation();
+                                down = nb.getRelative(compareFace).getLocation();
+                            }
                         }
-                    } else {//down
-                        if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.SOUTH)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.SOUTH).getType() == Material.AIR) {
-                            down = nb.getLocation();
-                            up = nb.getRelative(BlockFace.SOUTH).getLocation();
-                        } else if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.NORTH)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.NORTH).getType() == Material.AIR) {
-                            up = nb.getLocation();
-                            down = nb.getRelative(BlockFace.NORTH).getLocation();
+                        break;
+                    case WEST:
+                        if (Math.abs(v.getX() - ((int) v.getX())) < 0.5){//UP
+                            if (canPutAPortal(b.getRelative(compareFace=BlockFace.EAST)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                up = nb.getLocation();
+                                down = nb.getRelative(compareFace).getLocation();
+                            }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.WEST)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                down = nb.getLocation();
+                                up = nb.getRelative(compareFace).getLocation();
+                            }
+                        }else{//DOWN
+                            if (canPutAPortal(b.getRelative(compareFace=BlockFace.WEST)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                down = nb.getLocation();
+                                up = nb.getRelative(compareFace).getLocation();
+                            }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.EAST)) &&
+                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                up = nb.getLocation();
+                                down = nb.getRelative(compareFace).getLocation();
+                            }
                         }
-                    }
-                } else if (direction == BlockFace.EAST) {
-                    rest = Math.abs(v.getX() - ((int) v.getX()));
-                    if (rest > 0.5) {//up
-                        if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.WEST)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.WEST).getType() == Material.AIR) {
-                            up = nb.getLocation();
-                            down = nb.getRelative(BlockFace.WEST).getLocation();
-                        } else if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.EAST)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.EAST).getType() == Material.AIR) {
-                            down = nb.getLocation();
-                            up = nb.getRelative(BlockFace.EAST).getLocation();
-                        }
-                    } else {//down
-                        if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.EAST)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.EAST).getType() == Material.AIR) {
-                            down = nb.getLocation();
-                            up = nb.getRelative(BlockFace.EAST).getLocation();
-                        } else if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.WEST)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.WEST).getType() == Material.AIR) {
-                            up = nb.getLocation();
-                            down = nb.getRelative(BlockFace.WEST).getLocation();
-                        }
-                    }
-                } else if (direction == BlockFace.WEST) {
-                    rest = Math.abs(v.getX() - ((int) v.getX()));
-                    if (rest < 0.5) {//up
-                        if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.EAST)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.EAST).getType() == Material.AIR) {
-                            up = nb.getLocation();
-                            down = nb.getRelative(BlockFace.EAST).getLocation();
-                        } else if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.WEST)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.WEST).getType() == Material.AIR) {
-                            down = nb.getLocation();
-                            up = nb.getRelative(BlockFace.WEST).getLocation();
-                        }
-                    } else {//down
-                        if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.WEST)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.WEST).getType() == Material.AIR) {
-                            down = nb.getLocation();
-                            up = nb.getRelative(BlockFace.WEST).getLocation();
-                        } else if (PortalUtils.getInstance().inBlockList(b.getRelative(BlockFace.EAST)) &&
-                                PortalUtils.getInstance().inBlockList(b) &&
-                                nb.getRelative(BlockFace.EAST).getType() == Material.AIR) {
-                            up = nb.getLocation();
-                            down = nb.getRelative(BlockFace.EAST).getLocation();
-                        }
-                    }
+                        break;
                 }
             }
 
             if (up != null && down != null) {
-                for (PortalGun gun : PortalGunManager.getInstance().getPortalGuns()) {
-                    if (gun.getPortal1().isPortalLocation(up, face) ||
-                            gun.getPortal1().isPortalLocation(down, face)) {
-                        gun.getPortal1().resetPortal();
+                for (PortalGun portalGun : PortalGunManager.getInstance().getPortalGuns()) {
+                    if (portalGun.getPortal1().isPortalLocation(up, face) ||
+                            portalGun.getPortal1().isPortalLocation(down, face)) {
+                        portalGun.getPortal1().resetPortal();
                     }
-                    if (gun.getPortal2().isPortalLocation(up, face) ||
-                            gun.getPortal2().isPortalLocation(down, face)) {
-                        gun.getPortal2().resetPortal();
+                    if (portalGun.getPortal2().isPortalLocation(up, face) ||
+                            portalGun.getPortal2().isPortalLocation(down, face)) {
+                        portalGun.getPortal2().resetPortal();
                     }
                 }
                 if (checkSurface(up,face)&&checkSurface(down,face)){
-                    Portal portal = portalBlue?this.getPortal1():this.getPortal2();
+                    Portal portal = portalClick==PortalClick.RIGHT?this.getPortal1():this.getPortal2();
                     PlayerPortalShotEvent event = new PlayerPortalShotEvent(this,portal,t.getHitBlock(),p);
                     Bukkit.getPluginManager().callEvent(event);
                     if (event.isCancelled()){
                         return;
                     }
-                    p.getInventory().setItemInMainHand(this.updatePortalItem(p.getInventory().getItemInMainHand(),portalBlue?this.getPortalModel().getPortalColor1():this.getPortalModel().getPortalColor2()));
+                    p.getInventory().setItem(hand,this.updatePortalItem(p.getInventory().getItem(hand),portalClick==PortalClick.RIGHT?this.getPortalModel().getPortalColor1():this.getPortalModel().getPortalColor2()));
                     if (t.getHitBlockFace() == BlockFace.DOWN) {
                         portal.setPortal(up, down, t.getHitBlockFace(), direction);
                     } else {
                         portal.setPortal(down, up, t.getHitBlockFace(), direction);
                     }
                     PortalSound.PORTAL_GUN_SHOOT.playSound(location, 1, 1);
-
                 }else{
                     PortalSound.PORTAL_INVALID_SURFACE.playSound(t.getHitPosition().toLocation(location.getWorld()), 1, 1);
                 }
@@ -337,5 +289,9 @@ public class PortalGun {
             }
         }
         return status;
+    }
+
+    private boolean canPutAPortal(Block block){
+        return PortalUtils.getInstance().inBlockList(block);
     }
 }

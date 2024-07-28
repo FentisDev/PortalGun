@@ -1,5 +1,6 @@
 package pl.by.fentisdev.portalgun.utils;
 
+import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import pl.by.fentisdev.portalgun.PortalGunMain;
@@ -15,14 +16,11 @@ import java.util.stream.Collectors;
 
 public class PortalConfig {
 
+    @Getter
     private static PortalConfig instance = new PortalConfig();
 
-    public static PortalConfig getInstance() {
-        return instance;
-    }
-
-    private FileConfiguration cfg = PortalGunMain.getInstance().getConfig();
-    private List<Material> whitelistBlocks = new ArrayList<>();
+    private final FileConfiguration cfg = PortalGunMain.getInstance().getConfig();
+    private final List<Material> whitelistBlocks = new ArrayList<>();
 
     public void createConfig(){
         cfg.options().header("PortalGunMode:[INFINITY: Each Portal Gun created has its own portal. UNIQUE: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]");
