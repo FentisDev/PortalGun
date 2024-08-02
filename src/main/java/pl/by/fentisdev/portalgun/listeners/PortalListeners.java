@@ -337,6 +337,14 @@ public class PortalListeners implements Listener {
                     LivingEntity entity = (LivingEntity) t.getHitEntity();
                     PortalGunGrabEntityEvent event = new PortalGunGrabEntityEvent(pg,p,entity);
                     Bukkit.getPluginManager().callEvent(event);
+                    if (PortalConfig.getInstance().hasGrabEntitiesListMode()){
+                        if ((PortalConfig.getInstance().whitelistGrabEntitiesListMode()&&
+                                !PortalConfig.getInstance().getGrabEntitiesList().contains(entity.getType()))||
+                                (!PortalConfig.getInstance().whitelistGrabEntitiesListMode()&&
+                                        PortalConfig.getInstance().getGrabEntitiesList().contains(entity.getType()))){
+                            event.setCancelled(true);
+                        }
+                    }
                     if (!event.isCancelled()){
                         if (PortalGunManager.getInstance().beingHeld(entity)){
                             PortalGunManager.getInstance().removeHolding(entity);

@@ -1,16 +1,18 @@
-# PortalGunMode:[INFINITY: Each Portal Gun created has its own portal. ONE_TYPE_PER_PLAYER: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]
-PortalGunMode: INFINITY
+PortalGunMode: INFINITY # [INFINITY: Each Portal Gun created has its own portal. UNIQUE: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]
 Interdimensional: true
 GrabEntity: false
 PortalCraftable: true
 PortalShootRange: 80
+GrabEntitiesListMode: DISABLED # You can switch to modes: BLACKLIST, WHITELIST and DISABLED
+GrabEntitiesList: # EntityType List in: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/EntityType.html
+  - ARMOR_STAND
 WhiteList: true
 WhiteListBlocks:
 - WHITE_CONCRETE
 - WHITE_WOOL
 - QUARTZ_BLOCK
 - SMOOTH_QUARTZ
-PortalMapID:
+PortalMapID: # Don't Change! But if the portals don't render correctly, replace all values with -1
   blue:
     up: -1
     down: -1

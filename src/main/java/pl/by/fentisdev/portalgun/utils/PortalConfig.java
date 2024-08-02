@@ -3,6 +3,7 @@ package pl.by.fentisdev.portalgun.utils;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.EntityType;
 import pl.by.fentisdev.portalgun.PortalGunMain;
 import pl.by.fentisdev.portalgun.portalgun.PortalColors;
 import pl.by.fentisdev.portalgun.portalgun.PortalGunMode;
@@ -21,15 +22,23 @@ public class PortalConfig {
 
     private final FileConfiguration cfg = PortalGunMain.getInstance().getConfig();
     private final List<Material> whitelistBlocks = new ArrayList<>();
+    @Getter
+    private final List<EntityType> grabEntities = new ArrayList<>();
 
     public void createConfig(){
-        cfg.options().header("PortalGunMode:[INFINITY: Each Portal Gun created has its own portal. UNIQUE: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]");
+        cfg.setInlineComments("PortalGunMode",Arrays.asList("[INFINITY: Each Portal Gun created has its own portal. UNIQUE: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]"));
         cfg.addDefault("PortalGunMode","INFINITY");
         cfg.addDefault("Interdimensional",true);
         cfg.addDefault("GrabEntity",false);
         cfg.addDefault("WhiteList",true);
         cfg.addDefault("WhiteListBlocks", Arrays.asList(Material.WHITE_CONCRETE.toString(),Material.WHITE_WOOL.toString(),Material.QUARTZ_BLOCK.toString(),Material.SMOOTH_QUARTZ.toString()));
 
+        cfg.setInlineComments("GrabEntitiesListMode",Arrays.asList("You can switch to modes: BLACKLIST, WHITELIST and DISABLED"));
+        cfg.addDefault("GrabEntitiesListMode","BLACKLIST");
+        cfg.setInlineComments("GrabEntitiesList",Arrays.asList("EntityType List in: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/EntityType.html"));
+        cfg.addDefault("GrabEntitiesList",Arrays.asList(EntityType.ARMOR_STAND.toString()));
+
+        cfg.setInlineComments("PortalGunResources",Arrays.asList("Material List in: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html"));
         cfg.addDefault("PortalGunResources."+ PortalModel.CHELL.toString().toLowerCase()+".Material",Material.WOODEN_HOE.toString());
         cfg.addDefault("PortalGunResources."+ PortalModel.CHELL.toString().toLowerCase()+".CustomModelData.Normal",1);
         cfg.addDefault("PortalGunResources."+ PortalModel.CHELL.toString().toLowerCase()+".CustomModelData.Shoot1",2);
@@ -68,6 +77,7 @@ public class PortalConfig {
         cfg.addDefault("PortalGunCrafts."+ PortalModel.POTATOS.toString().toLowerCase()+".Shape",Arrays.asList("PIG","WNI","WWA"));
         cfg.addDefault("PortalGunCrafts."+ PortalModel.POTATOS.toString().toLowerCase()+".Ingredients",Arrays.asList("I:IRON_INGOT","G:GLASS_PANE","W:WHITE_CONCRETE","P:POTATO","N:NETHER_STAR"));
 
+        cfg.setInlineComments("PortalMapID",Arrays.asList("Don't Change! But if the portals don't render correctly, replace all values with -1"));
         for (PortalColors value : PortalColors.values()) {
             cfg.addDefault("PortalMapID."+ value.toString().toLowerCase()+".up",-1);
             cfg.addDefault("PortalMapID."+ value.toString().toLowerCase()+".down",-1);
@@ -76,6 +86,23 @@ public class PortalConfig {
         cfg.options().copyDefaults(true);
         PortalGunMain.getInstance().saveDefaultConfig();
         PortalGunMain.getInstance().saveConfig();
+    }
+
+    public boolean hasGrabEntitiesListMode(){
+        return !cfg.getString("GrabEntitiesListMode").equalsIgnoreCase("DISABLED");
+    }
+
+    public boolean whitelistGrabEntitiesListMode(){
+        return cfg.getString("GrabEntitiesListMode").equalsIgnoreCase("WHITELIST");
+    }
+
+    public List<EntityType> getGrabEntitiesList(){
+        if (grabEntities.isEmpty()){
+            for (String grabEntity : cfg.getStringList("GrabEntitiesList")) {
+                grabEntities.add(EntityType.valueOf(grabEntity.toUpperCase()));
+            }
+        }
+        return grabEntities;
     }
 
     public boolean isInterdimensional(){
