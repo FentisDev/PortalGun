@@ -130,21 +130,21 @@ public class PortalGun {
             if (face.isCartesian() && face!=BlockFace.UP && face!=BlockFace.DOWN){
                 if (Math.abs(v.getY() - ((int) v.getY())) >= 0.5){
                     if (canPutAPortal(b.getRelative(compareFace=BlockFace.UP)) &&
-                            nb.getRelative(compareFace).getType() == Material.AIR){
+                            nb.getRelative(compareFace).isEmpty()){
                         up = nb.getRelative(compareFace).getLocation();
                         down = nb.getLocation();
                     }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.DOWN)) &&
-                            nb.getRelative(compareFace).getType() == Material.AIR){
+                            nb.getRelative(compareFace).isEmpty()){
                         down = nb.getRelative(compareFace).getLocation();
                         up = nb.getLocation();
                     }
                 }else{
                     if (canPutAPortal(b.getRelative(compareFace=BlockFace.DOWN)) &&
-                            nb.getRelative(compareFace).getType() == Material.AIR){
+                            nb.getRelative(compareFace).isEmpty()){
                         down = nb.getRelative(compareFace).getLocation();
                         up = nb.getLocation();
                     } else if (canPutAPortal(b.getRelative(compareFace=BlockFace.UP)) &&
-                            nb.getRelative(compareFace).getType() == Material.AIR) {
+                            nb.getRelative(compareFace).isEmpty()) {
                         up = nb.getRelative(compareFace).getLocation();
                         down = nb.getLocation();
                     }
@@ -154,21 +154,21 @@ public class PortalGun {
                     case NORTH:
                         if (Math.abs(v.getZ() - ((int)v.getZ())) > 0.5){ //UP
                             if (canPutAPortal(b.getRelative(compareFace=BlockFace.SOUTH)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 up = nb.getLocation();
                                 down = nb.getRelative(compareFace).getLocation();
                             } else if (canPutAPortal(b.getRelative(compareFace = BlockFace.NORTH)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR) {
+                                    nb.getRelative(compareFace).isEmpty()) {
                                 down = nb.getLocation();
                                 up = nb.getRelative(compareFace).getLocation();
                             }
                         } else { //DOWN
                             if (canPutAPortal(b.getRelative(compareFace=BlockFace.NORTH)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 down = nb.getLocation();
                                 up = nb.getRelative(compareFace).getLocation();
                             }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.SOUTH)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 up = nb.getLocation();
                                 down = nb.getRelative(compareFace).getLocation();
                             }
@@ -177,21 +177,21 @@ public class PortalGun {
                     case SOUTH:
                         if (Math.abs(v.getZ() - ((int) v.getZ())) < 0.5){//UP
                             if (canPutAPortal(b.getRelative(compareFace=BlockFace.NORTH)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 up = nb.getLocation();
                                 down = nb.getRelative(compareFace).getLocation();
                             }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.SOUTH)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 down = nb.getLocation();
                                 up = nb.getRelative(compareFace).getLocation();
                             }
                         }else{//DOWN
                             if (canPutAPortal(b.getRelative(compareFace=BlockFace.SOUTH)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 down = nb.getLocation();
                                 up = nb.getRelative(compareFace).getLocation();
                             }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.NORTH)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 up = nb.getLocation();
                                 down = nb.getRelative(compareFace).getLocation();
                             }
@@ -200,21 +200,21 @@ public class PortalGun {
                     case EAST:
                         if (Math.abs(v.getX() - ((int) v.getX())) > 0.5){//UP
                             if (canPutAPortal(b.getRelative(compareFace=BlockFace.WEST)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 up = nb.getLocation();
                                 down = nb.getRelative(compareFace).getLocation();
                             }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.EAST)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 down = nb.getLocation();
                                 up = nb.getRelative(compareFace).getLocation();
                             }
                         }else{//DOWN
                             if (canPutAPortal(b.getRelative(compareFace=BlockFace.EAST)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 down = nb.getLocation();
                                 up = nb.getRelative(compareFace).getLocation();
                             }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.WEST)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 up = nb.getLocation();
                                 down = nb.getRelative(compareFace).getLocation();
                             }
@@ -223,21 +223,21 @@ public class PortalGun {
                     case WEST:
                         if (Math.abs(v.getX() - ((int) v.getX())) < 0.5){//UP
                             if (canPutAPortal(b.getRelative(compareFace=BlockFace.EAST)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 up = nb.getLocation();
                                 down = nb.getRelative(compareFace).getLocation();
                             }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.WEST)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 down = nb.getLocation();
                                 up = nb.getRelative(compareFace).getLocation();
                             }
                         }else{//DOWN
                             if (canPutAPortal(b.getRelative(compareFace=BlockFace.WEST)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 down = nb.getLocation();
                                 up = nb.getRelative(compareFace).getLocation();
                             }else if (canPutAPortal(b.getRelative(compareFace=BlockFace.EAST)) &&
-                                    nb.getRelative(compareFace).getType() == Material.AIR){
+                                    nb.getRelative(compareFace).isEmpty()){
                                 up = nb.getLocation();
                                 down = nb.getRelative(compareFace).getLocation();
                             }

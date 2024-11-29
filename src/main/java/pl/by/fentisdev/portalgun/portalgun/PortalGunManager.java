@@ -141,14 +141,14 @@ public class PortalGunManager {
                             EntityTeleportInPortalEvent event = new EntityTeleportInPortalEvent(portalGun,portalGun.getPortal1(),portalGun.getPortal2(),entity);
                             Bukkit.getPluginManager().callEvent(event);
                             if (!event.isCancelled()){
-                                PortalUtils.getInstance().portalTeleport(portalGun,entity,portalGun.getPortal2());
+                                PortalUtils.getInstance().portalTeleport(entity,portalGun.getPortal2());
                             }
                         }
                         for (Entity entity : portalGun.getPortal2().getEntityNearby()) {
                             EntityTeleportInPortalEvent event = new EntityTeleportInPortalEvent(portalGun,portalGun.getPortal2(),portalGun.getPortal1(),entity);
                             Bukkit.getPluginManager().callEvent(event);
                             if (!event.isCancelled()){
-                                PortalUtils.getInstance().portalTeleport(portalGun,entity,portalGun.getPortal1());
+                                PortalUtils.getInstance().portalTeleport(entity,portalGun.getPortal1());
                             }
                         }
                     }

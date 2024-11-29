@@ -13,6 +13,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
@@ -292,7 +293,7 @@ public class PortalUtils {
         return pos1.getBlockX()==pos2.getBlockX()&&pos1.getBlockY()==pos2.getBlockY()&&pos1.getBlockZ()==pos2.getBlockZ();
     }
 
-    public void portalTeleport(PortalGun portalGun, Entity entity, Portal toPortal){
+    public void portalTeleport(Entity entity, Portal toPortal){
         Location loc = toPortal.getLocTeleport(entity).clone();
         loc.setPitch(entity.getLocation().getPitch());
         PortalSound.PORTAL_ENTER.playSound(entity.getLocation(),1,1);
@@ -300,27 +301,33 @@ public class PortalUtils {
         Vector vec = entity.getVelocity();
         double vecPower = Math.abs(entity.getVelocity().getX()+entity.getVelocity().getY()+entity.getVelocity().getZ());
         if (toPortal.getPortalFace()!=BlockFace.UP){
-            float yaw = 0;
-            switch (toPortal.getPortalFace()){
-                case EAST:
-                    yaw = -90;
-                    vec = new Vector(vecPower,0,0);
-                    break;
-                case WEST:
-                    yaw = 90;
-                    vec = new Vector(-vecPower,0,0);
-                    break;
-                case NORTH:
-                    yaw = 180;
-                    vec = new Vector(0,0,-vecPower);
-                    break;
-                default:
-                    vec = new Vector(0,0,vecPower);
-                    break;
+            if (PortalConfig.getInstance().cameraChangeDirection()){
+                float yaw = 0;
+                switch (toPortal.getPortalFace()){
+                    case EAST:
+                        yaw = -90;
+                        vec = new Vector(vecPower,0,0);
+                        break;
+                    case WEST:
+                        yaw = 90;
+                        vec = new Vector(-vecPower,0,0);
+                        break;
+                    case NORTH:
+                        yaw = 180;
+                        vec = new Vector(0,0,-vecPower);
+                        break;
+                    default:
+                        vec = new Vector(0,0,vecPower);
+                        break;
+                }
+                loc.setYaw(yaw);
+            }else{
+                loc.setYaw(entity.getLocation().getYaw());
             }
-            loc.setYaw(yaw);
         }else{
-            loc.setYaw(entity.getLocation().getYaw());
+            if (PortalConfig.getInstance().cameraChangeDirection()){
+                loc.setYaw(entity.getLocation().getYaw());
+            }
             vec = new Vector(0,vecPower,0);
         }
         vec = vec.multiply(2);

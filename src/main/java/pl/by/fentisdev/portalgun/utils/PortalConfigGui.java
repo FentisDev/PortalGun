@@ -59,6 +59,10 @@ public class PortalConfigGui {
                             case 14:
                                 openPortalGunSelector(e.getPlayer());
                                 break;
+                            case 15:
+                                PortalConfig.getInstance().setCameraChangeDirection(!PortalConfig.getInstance().cameraChangeDirection());
+                                update();
+                                break;
                         }
                     }
                 }
@@ -213,6 +217,7 @@ public class PortalConfigGui {
         gui.setItem(12,new ItemCreator(Material.FILLED_MAP).setDisplayName("§aWhitelist Blocks"));
         gui.setItem(13,new ItemCreator(Material.COMPASS).setDisplayName("§aShoot Range: <"+PortalConfig.getInstance().getPortalShootRange()+">"));
         gui.setItem(14,new ItemCreator(Material.CRAFTING_TABLE).setDisplayName("§aRecipes").setLore("§cRestart required for apply any changes"));
+        gui.setItem(15,PortalConfig.getInstance().cameraChangeDirection()?new ItemCreator(Material.GREEN_WOOL).setDisplayName("§aCamera Change Direction"):new ItemCreator(Material.RED_WOOL).setDisplayName("§cCamera Change Direction"));
     }
 
     public void updatePortalGunRecipe(PortalModel po){

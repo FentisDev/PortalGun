@@ -30,6 +30,7 @@ public class PortalConfig {
         cfg.addDefault("PortalGunMode","INFINITY");
         cfg.addDefault("Interdimensional",true);
         cfg.addDefault("GrabEntity",false);
+        cfg.addDefault("CameraChangeDirection",true);
         cfg.addDefault("WhiteList",true);
         cfg.addDefault("WhiteListBlocks", Arrays.asList(Material.WHITE_CONCRETE.toString(),Material.WHITE_WOOL.toString(),Material.QUARTZ_BLOCK.toString(),Material.SMOOTH_QUARTZ.toString()));
 
@@ -90,6 +91,14 @@ public class PortalConfig {
 
     public boolean hasGrabEntitiesListMode(){
         return !cfg.getString("GrabEntitiesListMode").equalsIgnoreCase("DISABLED");
+    }
+
+    public boolean cameraChangeDirection(){
+        return cfg.getBoolean("CameraChangeDirection");
+    }
+
+    public void setCameraChangeDirection(boolean cameraChangeDirection){
+        cfg.set("CameraChangeDirection",cameraChangeDirection);
     }
 
     public boolean whitelistGrabEntitiesListMode(){
