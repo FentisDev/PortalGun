@@ -26,7 +26,7 @@ public class PortalConfig {
     private final List<EntityType> grabEntities = new ArrayList<>();
 
     public void createConfig(){
-        cfg.setInlineComments("PortalGunMode",Arrays.asList("[INFINITY: Each Portal Gun created has its own portal. UNIQUE: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]"));
+        cfg.setInlineComments("PortalGunMode",Arrays.asList("[INFINITY: Each Portal Gun created has its own portal. ONE_TYPE_PER_PLAYER: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]"));
         cfg.addDefault("PortalGunMode","INFINITY");
         cfg.addDefault("Interdimensional",true);
         cfg.addDefault("GrabEntity",false);
