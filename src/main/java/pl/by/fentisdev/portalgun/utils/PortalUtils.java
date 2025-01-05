@@ -297,37 +297,30 @@ public class PortalUtils {
         Location loc = toPortal.getLocTeleport(entity).clone();
         loc.setPitch(entity.getLocation().getPitch());
         PortalSound.PORTAL_ENTER.playSound(entity.getLocation(),1,1);
-        //Portal fromPortal = portalGun.getPortal1().equals(toPortal)?portalGun.getPortal2():portalGun.getPortal1();;
-        Vector vec = entity.getVelocity();
+        Vector vec;
         double vecPower = Math.abs(entity.getVelocity().getX()+entity.getVelocity().getY()+entity.getVelocity().getZ());
-        if (toPortal.getPortalFace()!=BlockFace.UP){
-            if (PortalConfig.getInstance().cameraChangeDirection()){
-                float yaw = 0;
-                switch (toPortal.getPortalFace()){
-                    case EAST:
-                        yaw = -90;
-                        vec = new Vector(vecPower,0,0);
-                        break;
-                    case WEST:
-                        yaw = 90;
-                        vec = new Vector(-vecPower,0,0);
-                        break;
-                    case NORTH:
-                        yaw = 180;
-                        vec = new Vector(0,0,-vecPower);
-                        break;
-                    default:
-                        vec = new Vector(0,0,vecPower);
-                        break;
-                }
-                loc.setYaw(yaw);
-            }else{
+        switch (toPortal.getPortalFace()){
+            case EAST:
+                loc.setYaw(-90);
+                vec = new Vector(vecPower,0,0);
+                break;
+            case WEST:
+                loc.setYaw(90);
+                vec = new Vector(-vecPower,0,0);
+                break;
+            case NORTH:
+                loc.setYaw(180);
+                vec = new Vector(0,0,-vecPower);
+                break;
+            default:
                 loc.setYaw(entity.getLocation().getYaw());
-            }
-        }else{
-            if (PortalConfig.getInstance().cameraChangeDirection()){
-                loc.setYaw(entity.getLocation().getYaw());
-            }
+                vec = new Vector(0,0,vecPower);
+                break;
+        }
+        if (!PortalConfig.getInstance().cameraChangeDirection()){
+            loc.setYaw(entity.getLocation().getYaw());
+        }
+        if (toPortal.getPortalFace()==BlockFace.UP){
             vec = new Vector(0,vecPower,0);
         }
         vec = vec.multiply(2);
