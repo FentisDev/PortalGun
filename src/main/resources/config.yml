@@ -1,4 +1,4 @@
-PortalGunMode: INFINITY # [INFINITY: Each Portal Gun created has its own portal. UNIQUE: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]
+PortalGunMode: INFINITY # [INFINITY: Each Portal Gun created has its own portal. ONE_TYPE_PER_PLAYER: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]
 Interdimensional: true
 GrabEntity: false
 CameraChangeDirection: true
@@ -34,6 +34,7 @@ PortalMapID: # Don't Change! But if the portals don't render correctly, replace 
     down: -1
 PortalGunCrafts:
   chell:
+    Name: &fPortal Gun
     Craft: true
     Shape:
     - AIG
@@ -45,6 +46,7 @@ PortalGunCrafts:
     - W:WHITE_CONCRETE
     - N:NETHER_STAR
   atlas:
+    Name: &fAtlas Portal Gun
     Craft: true
     Shape:
     - AIG
@@ -57,6 +59,7 @@ PortalGunCrafts:
     - Y:YELLOW_CONCRETE
     - N:NETHER_STAR
   p_body:
+    Name: &fP-Body Portal Gun
     Craft: true
     Shape:
     - AIG
@@ -69,6 +72,7 @@ PortalGunCrafts:
     - L:LIGHT_BLUE_CONCRETE
     - N:NETHER_STAR
   potatos:
+    Name: &fPotatOS Portal Gun
     Craft: true
     Shape:
     - PIG

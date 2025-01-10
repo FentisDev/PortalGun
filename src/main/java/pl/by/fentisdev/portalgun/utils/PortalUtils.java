@@ -167,7 +167,7 @@ public class PortalUtils {
             if (pdc.has(PortalGunNameSpacedKeys.PORTAL_ID_KEY,PersistentDataType.INTEGER)){
                 if (pdc.has(PortalGunNameSpacedKeys.PORTAL_FILE_ID_KEY,PersistentDataType.STRING)&&
                         !pdc.get(PortalGunNameSpacedKeys.PORTAL_FILE_ID_KEY,PersistentDataType.STRING).equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString())){
-                    portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType()));
+                    portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterialAndCustomModelData(item.getType(),item.getItemMeta().getCustomModelData()));
                     pdc.set(PortalGunNameSpacedKeys.PORTAL_ID_KEY,PersistentDataType.INTEGER, portalGun.getId());
                     pdc.set(PortalGunNameSpacedKeys.PORTAL_FILE_ID_KEY,PersistentDataType.STRING,PortalGunManager.getInstance().getPortalFileUUID().toString());
                 }
@@ -178,12 +178,13 @@ public class PortalUtils {
                     case ONE_TYPE_PER_PLAYER:
                         PortalGun pg = null;
                         for (PortalGun playerPortalGun : PortalGunManager.getInstance().getPlayerPortalGuns(p)) {
-                            if (playerPortalGun.getPortalModel()==PortalModel.getPortalModelByMaterial(item.getType())){
+                            if (playerPortalGun.getPortalModel()==PortalModel.getPortalModelByMaterialAndCustomModelData(item.getType(),item.getItemMeta().getCustomModelData())&&playerPortalGun.getPortalModel().hasCustomModelData(item.getItemMeta().getCustomModelData())){
                                 pg = playerPortalGun;
+                                break;
                             }
                         }
                         if (pg==null){
-                            portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType()));
+                            portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterialAndCustomModelData(item.getType(),item.getItemMeta().getCustomModelData()));
                             PortalGunManager.getInstance().addPlayerPortalGun(p,portalGun);
                         }else{
                             portalGun = pg;
@@ -192,9 +193,9 @@ public class PortalUtils {
                     case ONE_PORTAL_PER_PLAYER:
                         try {
                             portalGun=PortalGunManager.getInstance().getPlayerPortalGuns(p).get(0);
-                            portalGun.setPortalModel(PortalModel.getPortalModelByMaterial(item.getType()));
+                            portalGun.setPortalModel(PortalModel.getPortalModelByMaterialAndCustomModelData(item.getType(),item.getItemMeta().getCustomModelData()));
                         }catch (Exception e){
-                            PortalGunManager.getInstance().addPlayerPortalGun(p,portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType())));
+                            PortalGunManager.getInstance().addPlayerPortalGun(p,portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterialAndCustomModelData(item.getType(),item.getItemMeta().getCustomModelData())));
                         }
                 }
             }
@@ -210,7 +211,7 @@ public class PortalUtils {
             if (nbt.hasKey("PortalID")){
                 if (nbt.hasKey("PortalFileUUID")&&
                         !nbt.getString("PortalFileUUID").equalsIgnoreCase(PortalGunManager.getInstance().getPortalFileUUID().toString())){
-                    portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType()));
+                    portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterialAndCustomModelData(item.getType(),item.getItemMeta().getCustomModelData()));
                     nbt.setInteger("PortalID",portalGun.getId());
                     nbt.setString("PortalFileUUID",PortalGunManager.getInstance().getPortalFileUUID().toString());
                 }
@@ -222,12 +223,12 @@ public class PortalUtils {
                     case ONE_TYPE_PER_PLAYER:
                         PortalGun pg = null;
                         for (PortalGun playerPortalGun : PortalGunManager.getInstance().getPlayerPortalGuns(p)) {
-                            if (playerPortalGun.getPortalModel()==PortalModel.getPortalModelByMaterial(item.getType())){
+                            if (playerPortalGun.getPortalModel()==PortalModel.getPortalModelByMaterialAndCustomModelData(item.getType(),item.getItemMeta().getCustomModelData())&&playerPortalGun.getPortalModel().hasCustomModelData(item.getItemMeta().getCustomModelData())){
                                 pg = playerPortalGun;
                             }
                         }
                         if (pg==null){
-                            portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType()));
+                            portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterialAndCustomModelData(item.getType(),item.getItemMeta().getCustomModelData()));
                             PortalGunManager.getInstance().addPlayerPortalGun(p,portalGun);
                         }else{
                             portalGun = pg;
@@ -236,9 +237,9 @@ public class PortalUtils {
                     case ONE_PORTAL_PER_PLAYER:
                         try {
                             portalGun=PortalGunManager.getInstance().getPlayerPortalGuns(p).get(0);
-                            portalGun.setPortalModel(PortalModel.getPortalModelByMaterial(item.getType()));
+                            portalGun.setPortalModel(PortalModel.getPortalModelByMaterialAndCustomModelData(item.getType(),item.getItemMeta().getCustomModelData()));
                         }catch (Exception e){
-                            PortalGunManager.getInstance().addPlayerPortalGun(p,portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterial(item.getType())));
+                            PortalGunManager.getInstance().addPlayerPortalGun(p,portalGun=PortalGunManager.getInstance().createPortalGun(PortalModel.getPortalModelByMaterialAndCustomModelData(item.getType(),item.getItemMeta().getCustomModelData())));
                         }
                 }
             }

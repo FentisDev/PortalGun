@@ -264,7 +264,11 @@ public class PortalGun {
                     if (event.isCancelled()){
                         return;
                     }
-                    p.getInventory().setItem(hand,this.updatePortalItem(p.getInventory().getItem(hand),portalClick==PortalClick.RIGHT?this.getPortalModel().getPortalColor1():this.getPortalModel().getPortalColor2()));
+                    ItemStack portalItem = p.getInventory().getItem(hand);
+                    if (portalItem.getType() != getPortalModel().getMaterialPortal()){
+                        portalItem.setType(getPortalModel().getMaterialPortal());
+                    }
+                    p.getInventory().setItem(hand,this.updatePortalItem(portalItem,portalClick==PortalClick.RIGHT?this.getPortalModel().getPortalColor1():this.getPortalModel().getPortalColor2()));
                     if (t.getHitBlockFace() == BlockFace.DOWN) {
                         portal.setPortal(up, down, t.getHitBlockFace(), direction);
                     } else {

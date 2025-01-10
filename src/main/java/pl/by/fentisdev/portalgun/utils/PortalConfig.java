@@ -26,7 +26,7 @@ public class PortalConfig {
     private final List<EntityType> grabEntities = new ArrayList<>();
 
     public void createConfig(){
-        cfg.setInlineComments("PortalGunMode",Arrays.asList("[INFINITY: Each Portal Gun created has its own portal. UNIQUE: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]"));
+        cfg.setInlineComments("PortalGunMode",Arrays.asList("[INFINITY: Each Portal Gun created has its own portal. ONE_TYPE_PER_PLAYER: The player can only have one Portal Gun of each type. ONE_PORTAL_PER_PLAYER: The Player can only have one Portal Gun, if he gets another Portal Gun the previous portals will be disabled.]"));
         cfg.addDefault("PortalGunMode","INFINITY");
         cfg.addDefault("Interdimensional",true);
         cfg.addDefault("GrabEntity",false);
@@ -62,18 +62,22 @@ public class PortalConfig {
 
         cfg.addDefault("PortalCraftable",true);
 
+        cfg.addDefault("PortalGunCrafts."+ PortalModel.CHELL.toString().toLowerCase()+".Name","&fPortal Gun");
         cfg.addDefault("PortalGunCrafts."+ PortalModel.CHELL.toString().toLowerCase()+".Craft",true);
         cfg.addDefault("PortalGunCrafts."+ PortalModel.CHELL.toString().toLowerCase()+".Shape",Arrays.asList("AIG","WNI","WWA"));
         cfg.addDefault("PortalGunCrafts."+ PortalModel.CHELL.toString().toLowerCase()+".Ingredients",Arrays.asList("I:IRON_INGOT","G:GLASS_PANE","W:WHITE_CONCRETE","N:NETHER_STAR"));
 
+        cfg.addDefault("PortalGunCrafts."+ PortalModel.ATLAS.toString().toLowerCase()+".Name","&fAtlas Portal Gun");
         cfg.addDefault("PortalGunCrafts."+ PortalModel.ATLAS.toString().toLowerCase()+".Craft",true);
         cfg.addDefault("PortalGunCrafts."+ PortalModel.ATLAS.toString().toLowerCase()+".Shape",Arrays.asList("AIG","YNI","WWA"));
         cfg.addDefault("PortalGunCrafts."+ PortalModel.ATLAS.toString().toLowerCase()+".Ingredients",Arrays.asList("I:IRON_INGOT","G:GLASS_PANE","W:WHITE_CONCRETE","Y:YELLOW_CONCRETE","N:NETHER_STAR"));
 
+        cfg.addDefault("PortalGunCrafts."+ PortalModel.P_BODY.toString().toLowerCase()+".Name","&fP-Body Portal Gun");
         cfg.addDefault("PortalGunCrafts."+ PortalModel.P_BODY.toString().toLowerCase()+".Craft",true);
         cfg.addDefault("PortalGunCrafts."+ PortalModel.P_BODY.toString().toLowerCase()+".Shape",Arrays.asList("AIG","LNI","WWA"));
         cfg.addDefault("PortalGunCrafts."+ PortalModel.P_BODY.toString().toLowerCase()+".Ingredients",Arrays.asList("I:IRON_INGOT","G:GLASS_PANE","W:WHITE_CONCRETE","L:LIGHT_BLUE_CONCRETE","N:NETHER_STAR"));
 
+        cfg.addDefault("PortalGunCrafts."+ PortalModel.POTATOS.toString().toLowerCase()+".Name","&fPotatOS Portal Gun");
         cfg.addDefault("PortalGunCrafts."+ PortalModel.POTATOS.toString().toLowerCase()+".Craft",true);
         cfg.addDefault("PortalGunCrafts."+ PortalModel.POTATOS.toString().toLowerCase()+".Shape",Arrays.asList("PIG","WNI","WWA"));
         cfg.addDefault("PortalGunCrafts."+ PortalModel.POTATOS.toString().toLowerCase()+".Ingredients",Arrays.asList("I:IRON_INGOT","G:GLASS_PANE","W:WHITE_CONCRETE","P:POTATO","N:NETHER_STAR"));
@@ -187,6 +191,10 @@ public class PortalConfig {
 
     public void setCanGrabEntity(boolean canGrabEntity){
         cfg.set("GrabEntity",canGrabEntity);
+    }
+
+    public String portalGunName(PortalModel pm){
+        return cfg.getString("PortalGunCrafts."+ pm.toString().toLowerCase()+".Name");
     }
 
     public boolean canCraft(PortalModel pm){

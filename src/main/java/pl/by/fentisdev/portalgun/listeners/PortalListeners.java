@@ -100,7 +100,7 @@ public class PortalListeners implements Listener {
                 e.getAction() == Action.RIGHT_CLICK_BLOCK) &&
                 item.hasItemMeta() &&
                 item.getItemMeta().hasCustomModelData()){
-            PortalModel po = PortalModel.getPortalModelByMaterial(item.getType());
+            PortalModel po = PortalModel.getPortalModelByMaterialAndCustomModelData(item.getType(),item.getItemMeta().getCustomModelData());
             if (po==null){
                 return;
             }

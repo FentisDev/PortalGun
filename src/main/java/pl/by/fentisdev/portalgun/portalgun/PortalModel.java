@@ -1,37 +1,26 @@
 package pl.by.fentisdev.portalgun.portalgun;
 
+import lombok.Getter;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import pl.by.fentisdev.itemcreator.ItemCreator;
 import pl.by.fentisdev.portalgun.utils.PortalConfig;
 
+@Getter
 public enum PortalModel {
 
-    CHELL(0,PortalColors.BLUE,PortalColors.ORANGE,"§fPortal Gun"),
-    P_BODY(1,PortalColors.AQUA,PortalColors.PURPLE,"§fP-Body Portal Gun"),
-    ATLAS(2,PortalColors.YELLOW,PortalColors.RED,"§fAtlas Portal Gun"),
-    POTATOS(3,PortalColors.BLUE,PortalColors.ORANGE,"§fPotatOS Portal Gun");
+    CHELL(0,PortalColors.BLUE,PortalColors.ORANGE),
+    P_BODY(1,PortalColors.AQUA,PortalColors.PURPLE),
+    ATLAS(2,PortalColors.YELLOW,PortalColors.RED),
+    POTATOS(3,PortalColors.BLUE,PortalColors.ORANGE);
 
     private int id;
-    private PortalColors portal1,portal2;
-    private String name;
+    private PortalColors portalColor1,portalColor2;
 
-    PortalModel(int id, PortalColors portal1, PortalColors portal2, String name) {
+    PortalModel(int id, PortalColors portalColor1, PortalColors portalColor2) {
         this.id = id;
-        this.portal1 = portal1;
-        this.portal2 = portal2;
-        this.name = name;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public PortalColors getPortalColor1() {
-        return portal1;
-    }
-
-    public PortalColors getPortalColor2() {
-        return portal2;
+        this.portalColor1 = portalColor1;
+        this.portalColor2 = portalColor2;
     }
 
     public Material getMaterialPortal() {
@@ -50,18 +39,22 @@ public enum PortalModel {
         return PortalConfig.getInstance().getPortalGunCustomModelDataShoot2(this);
     }
 
+    public boolean hasCustomModelData(int customModelData){
+        return getCustomModelDataNormal()==customModelData||getCustomModelDataShoot1()==customModelData||getCustomModelDataShoot2()==customModelData;
+    }
+
     public String getName() {
-        return name;
+        return ChatColor.translateAlternateColorCodes('&',PortalConfig.getInstance().portalGunName(this));
     }
 
     public ItemCreator createItem(){
         return new ItemCreator(getMaterialPortal()).setCustomModelData(getCustomModelDataNormal()).setDisplayName(getName()).setUnbreakable(true);
     }
 
-    public static PortalModel getPortalModelByMaterial(Material material){
+    public static PortalModel getPortalModelByMaterialAndCustomModelData(Material material, int customModelData){
         PortalModel model = null;
         for (PortalModel value : values()) {
-            if (value.getMaterialPortal()==material){
+            if (value.getMaterialPortal()==material&&value.hasCustomModelData(customModelData)){
                 model=value;
             }
         }
